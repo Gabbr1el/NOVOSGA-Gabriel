@@ -2,7 +2,7 @@
   "server": "http://localhost",
   "unity": 2,
   "services": [5],
-  "alert": "ekiga-vm.wav",
+  "alert": "ding-dong.wav",
   "speech": true,
   "username": "admin",
   "password": "123456",

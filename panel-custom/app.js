@@ -215,7 +215,7 @@ async function carregarChamadas() {
 
       setTimeout(() => {
         falar(nome, local);
-      }, 1500);
+      }, 2500);
     }
   } catch (e) {
     console.error(e);
