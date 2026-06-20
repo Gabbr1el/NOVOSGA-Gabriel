@@ -218,17 +218,14 @@ docker compose ps
 ```bash
 docker compose exec novosga sh
 ```
+---
+##Caminhos para trocar imgs
+
+No painel de chamada, todas as imagens estão disponibilizadas no panel-custom/images/ e para modificar em panel-custom/index.html
+
+Já no novosga precisa adicionar a imagem na raiz do projeto, na pasta imagens, caso não tenha crie, e os nomes tem que ser 
+- novosga-navbar.png
+- novosga-login.png
+- favicon.png
 
 ---
-
-## 7. Resumo rápido (checklist)
-
-- [ ] *(Windows, se necessário)* `wsl --install` no PowerShell como admin + reiniciar
-- [ ] Instalar Docker + Docker Compose
-- [ ] `git clone --branch Default-empty https://github.com/Gabbr1el/NOVOSGA-Gabriel.git`
-- [ ] Editar `compose.yaml` → dados da unidade, admin, senha do banco, porta
-- [ ] Editar `panel-custom/config.json` → endereço do servidor, unidade, serviços do painel
-- [ ] `docker compose up -d --build`
-- [ ] `docker compose exec novosga php bin/console novosga:install`
-- [ ] Acessar `http://localhost` e logar com o admin configurado
-- [ ] Configurar serviços/guichês/atendentes dentro do sistema (já logado como admin)
