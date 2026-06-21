@@ -1,0 +1,11 @@
+{
+  "server": "http://192.168.0.16",
+  "unity": 3,
+  "services": [6],
+  "alert": "ding-dong.wav",
+  "speech": true,
+  "username": "admin",
+  "password": "123456",
+  "clientId": "97659cfdfa1076a365d72bbb14292e42",
+  "clientSecret": "c178cad4e3d060b41800b9ad83ea533a108e804deb7b847dc408ac8804c245adc69553f31c7e69b7a2e6aad9175c64be067adf4c985eec66035d12c1909fd3d5"
+}     

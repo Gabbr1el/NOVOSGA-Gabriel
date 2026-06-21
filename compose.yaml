@@ -48,6 +48,13 @@ services:
       SERVER_NAME: ":3000"
       MERCURE_PUBLISHER_JWT_KEY: "eyJhbGciOiJIUzI1NiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlsiKiJdfX0.Carr3UqDSoWjUY4fCOrizjTZ4a2LQ6cx35cd6QdahZY"
       MERCURE_EXTRA_DIRECTIVES: "anonymous 1; cors_origins *"
+  
+  tts:
+    image: ghcr.io/aculeasis/rhvoice-rest:latest
+    restart: always
+    ports:
+      - "5001:8080"
+
 
   panel:
     image: novosga/panel-app
@@ -61,6 +68,20 @@ services:
       VUE_APP_MERCURE_URL: http://localhost:3000/.well-known/mercure
     volumes:
       - ./panel-custom:/usr/share/nginx/html
+
+  panel2:
+    image: novosga/panel-app
+    restart: always
+    depends_on:
+      - novosga
+    ports:
+      - "8082:80"
+    environment:
+      VUE_APP_API_BASE_URL: http://localhost
+      VUE_APP_MERCURE_URL: http://localhost:3000/.well-known/mercure
+    volumes:
+      - ./panel-custom (Protocolo):/usr/share/nginx/html
+
 
   mysqldb:
     image: mysql:8.0

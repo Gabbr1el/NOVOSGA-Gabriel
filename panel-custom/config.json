@@ -1,5 +1,5 @@
 {
-  "server": "http://localhost",
+  "server": "http://192.168.0.16",
   "unity": 2,
   "services": [5],
   "alert": "ding-dong.wav",
