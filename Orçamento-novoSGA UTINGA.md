@@ -44,6 +44,25 @@ Após os 30 dias de suporte inclusos na implantação, a unidade pode contratar 
 
 ---
 
+## 💻 Reinstalação do Sistema após Formatação do Servidor
+
+Caso o computador principal (servidor) onde o Novo SGA está instalado seja formatado, será necessária uma nova instalação e configuração do sistema.
+
+### 💰 Valores da reinstalação
+
+- ✅ **Primeira formatação:** será cobrado **50% do valor da implantação** contratada.
+- ✅ **A partir da segunda formatação:** será cobrado o **valor integral da implantação**, conforme a tabela vigente.
+
+> A reinstalação inclui a configuração do sistema, restauração das configurações necessárias e testes para garantir o funcionamento adequado.
+
+### 🎁 Clientes com Suporte Técnico Mensal
+
+As unidades que estiverem com o **Suporte Técnico Mensal ativo** no momento da formatação terão a reinstalação do Novo SGA realizada **sem custo adicional**, independentemente da quantidade de formatações realizadas durante a vigência do contrato de suporte.
+
+> ⚠️ Caso o suporte mensal não esteja ativo na data da formatação, serão aplicados os valores de reinstalação descritos acima.
+
+---
+
 ## 💰 Planos de Implantação
 
 A precificação leva em conta **3 fatores principais**:
