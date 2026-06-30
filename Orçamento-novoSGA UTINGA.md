@@ -155,6 +155,27 @@ Esses dispositivos permitem acessar o painel de chamadas do Novo SGA em uma TV c
 
 Esses dispositivos permitem acessar o navegador em uma TV comum, permitindo o acesso ao painel de chamadas do Novo SGA.
 
+---
+
+## 📦 Comodato de Fire Stick ou TV Box (Opcional)
+
+Caso a unidade não possua uma TV Smart ou um dispositivo compatível, também oferecemos a possibilidade de fornecimento de um **Fire Stick** ou **TV Box** em regime de **comodato**.
+
+### ✅ Como funciona
+
+- O equipamento é fornecido para utilização do Novo SGA;
+- O dispositivo permanece como propriedade da empresa responsável pela implantação;
+- Em caso de encerramento do contrato de suporte ou do comodato, o equipamento deverá ser devolvido em boas condições de funcionamento, considerando o desgaste natural pelo uso;
+- A instalação e configuração do equipamento são realizadas durante a implantação do sistema.
+
+### 💰 Valores
+
+**Mensalidade do comodato: R$ 35,00 por equipamento/mês.**
+
+Essa mensalidade refere-se exclusivamente ao fornecimento do Fire Stick ou TV Box em comodato e será adicionada ao valor do suporte técnico mensal, se contratado.
+
+---
+
 #### ⚠️ Não Recomendado: HDMI ⚠️
 
 Usar HDMI conectando um computador à TV é possível, porém não é a melhor opção, pois:
