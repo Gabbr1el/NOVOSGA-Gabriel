@@ -60,11 +60,11 @@ A precificação leva em conta **3 fatores principais**:
 
 Encontre a linha conforme o tipo da unidade e a coluna conforme a quantidade de telas de chamada:
 
-| Estrutura da Unidade | 1 Tela | 2-3 Telas | 4+ Telas |
+| Estrutura da Unidade | 1 Tela | 2-3 Telas/Setores | 4+ Telas |
 |---|---:|---:|---:|
-| Unidade simples | R$ 2.000 | R$ 2.500 | R$ 3.000 |
-| Unidade média | R$ 2.500 | R$ 3.000 | R$ 3.500 |
-| Unidade complexa | R$ 3.000 | R$ 3.500 | R$ 4.000 |
+| Unidade simples | R$ 1.000 | R$ 1.800 | R$ 2.200 |
+| Unidade média | R$ 1.400 | R$ 2.000 | R$ 2.600 |
+| Unidade complexa | R$ 1.600 | R$ 2.200 | R$ 3.000 |
 | Grande estrutura | Consulte-nos | Consulte-nos | Consulte-nos |
 
 ---
@@ -103,15 +103,15 @@ Após escolher o valor base da unidade, adicione o acréscimo conforme a quantid
 
 #### 2. Secretaria de Saúde
 
-- Unidade média + 3 telas = R$ 3.000
-- 20 pessoas = + R$ 300
-- **TOTAL: R$ 3.300** ✅
+- Unidade média + 3 telas = R$ 2.000
+- de 16 à 25 pessoas = + R$ 300
+- **TOTAL: R$ 2.300** ✅
 
 #### 3. Hospital Pequeno
 
-- Unidade complexa + 4 telas = R$ 4.000
-- 35 pessoas = + R$ 600
-- **TOTAL: R$ 4.700** ✅
+- Unidade complexa + 4 telas = R$ 3.000
+- 26+ pessoas = + R$ 600
+- **TOTAL: R$ 3.600** ✅
 
 ---
 
@@ -155,24 +155,20 @@ Esses dispositivos permitem acessar o painel de chamadas do Novo SGA em uma TV c
 
 Esses dispositivos permitem acessar o navegador em uma TV comum, permitindo o acesso ao painel de chamadas do Novo SGA.
 
-#### ❌ Não Recomendado: HDMI
+#### ⚠️ Não Recomendado: HDMI ⚠️
 
 Usar HDMI conectando um computador à TV é possível, porém não é a melhor opção, pois:
 
-- ❌ Depende de um computador ligado
-- ❌ Deixa o computador em modo de tela estendida
-- ❌ Dificulta o gerenciamento independente da TV
-- ❌ Pode gerar mais cabos e menos organização
+-  Depende de um computador ligado
+-  Deixa o computador em modo de tela estendida
+-  Dificulta o gerenciamento independente da TV
+-  Pode gerar mais cabos e menos organização
 
 Caso a unidade opte por HDMI, será necessário organizar a passagem do cabo até a TV.
 
 ---
 
-## 🔧 Separação de Telas por Setor
-
-Este é um dos principais pontos da implantação quando há **múltiplas TVs/telas**.
-
-### 📌 O Problema
+### 📌 Exemplo de funcionamento
 
 Quando existem 2 ou mais telas de chamada, cada uma deve exibir **apenas as chamadas do seu setor**, sem misturar informações.
 
@@ -180,16 +176,13 @@ Quando existem 2 ou mais telas de chamada, cada uma deve exibir **apenas as cham
 EXEMPLO:
 
 TV Recepção:
-  ├─ Senha A-001
-  ├─ Senha A-002
-  └─ Senha A-003
+  ├─ Senha: Pessoa-A Guichê 1
+  ├─ Senha: Pessoa-B Consultório X 
+  └─ Senha: Pessoa-C Consultório Y 
 
 TV Triagem:
-  ├─ Senha B-001
-  ├─ Senha B-002
-  └─ Senha B-003
+  ├─ Senha: Pessoa-A Triagem  
+  ├─ Senha: Pessoa-B Triagem
+  └─ Senha: Pessoa-C Triagem
 ```
 
-### **Seu investimento é simples: escolha o plano, receba o sistema funcionando, e tenha suporte remoto por um mês.** 🚀
-
----
