@@ -219,7 +219,8 @@ docker compose ps
 docker compose exec novosga sh
 ```
 ---
-##Caminhos para trocar imgs
+
+## Caminhos para trocar imgs
 
 No painel de chamada, todas as imagens estão disponibilizadas no panel-custom/images/ e para modificar em panel-custom/index.html
 
@@ -229,3 +230,35 @@ Já no novosga precisa adicionar a imagem na raiz do projeto, na pasta imagens, 
 - favicon.png
 
 ---
+
+## como criar e utilizar um novo painel para exibição
+
+No compose.yaml crie a estrutura de um novo painel assim:
+
+```
+panel2:
+    image: novosga/panel-app
+    restart: always
+    depends_on:
+      - novosga
+    ports:
+      - "8082:80"
+    environment:
+      VUE_APP_API_BASE_URL: http://localhost
+      VUE_APP_MERCURE_URL: http://localhost:3000/.well-known/mercure
+    volumes:
+      - ./panel-custom-2:/usr/share/nginx/html
+```
+Logo após, copie e cole a pasta panel-custom na raiz.
+
+Depois Mude as informações no Config do novo
+Após isso, crie o painel no docker:
+```
+docker compose up -d panel2
+```
+> Em
+>  volumes:
+> - ./<strong>panel-custom-2</strong>:/usr/share/nginx/html
+> voce troca o nome desse diretório e coloca o nome que tiver na pasta copiada.
+
+o sistema de utinga por exemplo, vai ser um computador/servidor que vai distribuir esse acesso a rede toda, separado por unidades
