@@ -7,7 +7,7 @@
 
 📱 Contato: (75) 9 9959-1008 ou [Clique aqui](https://api.whatsapp.com/send?phone=5575999591008) \
 ✉️ Email: felipegabrielsr03@gmail.com \
-🖥️ Github: https://github.com/Gabbr1el 
+🖥️ GitHub: https://github.com/Gabbr1el 
 
 ---
 
@@ -123,7 +123,7 @@ Após escolher o valor base da unidade, adicione o acréscimo conforme a quantid
 #### 2. Secretaria de Saúde
 
 - Unidade média + 3 telas = R$ 2.000
-- de 16 à 25 pessoas = + R$ 300
+- de 16 a 25 pessoas = + R$ 300
 - **TOTAL: R$ 2.300** ✅
 
 #### 3. Hospital Pequeno
@@ -157,41 +157,76 @@ Para que o Novo SGA funcione corretamente, a unidade precisa ter:
 - Não precisa de computador adicional ligado à tela
 - Funciona de forma mais independente e organizada
 
-#### ⚠️ Opção Alternativa: TV Box ou Adaptador Smart
+#### ⚠️ Opção Alternativa: Adaptador Smart (Fire Stick ou equivalente)
 
 Se a TV não for smart, é possível utilizar:
 
-- TV Box
 - Fire Stick
 - Outro adaptador/dispositivo smart
 
 Esses dispositivos permitem acessar o painel de chamadas do Novo SGA em uma TV comum.
 
 > ⚠️ **Antes de comprar:**
-> caso a unidade precise adquirir uma TV Box, Fire Stick ou adaptador smart, recomendamos consultar nossa equipe antes da compra para confirmar a compatibilidade com o Novo SGA.
->
-> O aparelho não precisa ser caro, pois será usado basicamente para acessar o painel de chamadas pelo navegador, através do endereço do servidor local. Por esse motivo, é interessante dar preferência a uma TV Box com entrada para cabo de rede, pois a conexão tende a ser mais estável.
+> caso a unidade precise adquirir um Fire Stick ou algum outro adaptador smart, recomendamos consultar nossa equipe antes da compra para confirmar a compatibilidade com o Novo SGA.
 
 Esses dispositivos permitem acessar o navegador em uma TV comum, permitindo o acesso ao painel de chamadas do Novo SGA.
 
 ---
 
-## 📦 Comodato de Fire Stick ou TV Box (Opcional)
+## 📦 Equipamentos para as Telas de Chamada (Opcional)
 
-Caso a unidade não possua uma TV Smart ou um dispositivo compatível, também oferecemos a possibilidade de fornecimento de um **Fire Stick** ou **TV Box** em regime de **comodato**.
+Caso a unidade não possua uma TV Smart ou um dispositivo compatível, oferecemos duas opções para utilização do Novo SGA: **aquisição** ou **comodato** do equipamento.
 
-### ✅ Como funciona
+### ✅ Opção 1 – Aquisição do Equipamento
 
-- O equipamento é fornecido para utilização do Novo SGA;
-- O dispositivo permanece como propriedade da empresa responsável pela implantação;
-- Em caso de encerramento do contrato de suporte ou do comodato, o equipamento deverá ser devolvido em boas condições de funcionamento, considerando o desgaste natural pelo uso;
-- A instalação e configuração do equipamento são realizadas durante a implantação do sistema.
+A unidade pode adquirir o equipamento diretamente conosco.
 
-### 💰 Valores
+* **Fire Stick:** **R$ 250,00 por equipamento.**
 
-**Mensalidade do comodato: R$ 35,00 por equipamento/mês.**
+O equipamento passa a ser propriedade da unidade, não possui mensalidade e não precisa ser devolvido.
 
-Essa mensalidade refere-se exclusivamente ao fornecimento do Fire Stick ou TV Box em comodato e será adicionada ao valor do suporte técnico mensal, se contratado.
+Após a aquisição, não haverá qualquer cobrança recorrente relacionada ao equipamento.
+
+Caso a unidade prefira, o valor dos equipamentos poderá ser incorporado ao orçamento da implantação, permitindo a contratação da solução completa (implantação e equipamentos) em uma única proposta.
+
+**Exemplo:**
+
+* Implantação do Novo SGA: R$ 2.000,00
+* 2 equipamentos: 2 × R$ 250,00 = R$ 500,00
+* **Valor total da implantação: R$ 2.500,00**
+
+> **Observação:** Caso a unidade opte pela aquisição dos equipamentos, o valor correspondente (**R$ 250,00 por equipamento**) será acrescido ao valor da implantação, de acordo com a quantidade de telas de chamada que necessitem de um dispositivo.
+
+---
+
+### ✅ Opção 2 – Comodato do Equipamento
+
+Também oferecemos o fornecimento de Fire Stick em regime de comodato.
+
+**Como funciona:**
+
+* O equipamento é fornecido para utilização exclusiva do Novo SGA;
+* O equipamento permanece como propriedade da empresa responsável pela implantação;
+* A instalação e configuração são realizadas durante a implantação do sistema;
+* Em caso de encerramento do contrato de comodato, o equipamento deverá ser devolvido em boas condições de funcionamento, considerando apenas o desgaste natural pelo uso.
+
+**Mensalidade:** **R$ 35,00 por equipamento/mês.**
+
+**Prazo mínimo do comodato:** **8 meses.**
+
+O prazo mínimo de **8 meses** foi estabelecido para viabilizar o fornecimento do equipamento em regime de comodato, considerando os custos de aquisição, configuração, instalação e disponibilização.
+
+Caso a unidade solicite o encerramento do comodato antes do término do prazo mínimo, será devido o pagamento das mensalidades restantes até completar os **8 meses** de vigência contratual.
+
+---
+
+### 📌 Qual opção escolher?
+
+A unidade poderá escolher a modalidade que melhor atenda às suas necessidades:
+
+* Utilizar equipamento próprio;
+* Adquirir o equipamento conosco pelo valor de **R$ 250,00 por unidade**;
+* Contratar o equipamento em comodato por **R$ 35,00 por equipamento/mês**, com prazo mínimo de **8 meses**.
 
 ---
 
@@ -204,7 +239,7 @@ Usar HDMI conectando um computador à TV é possível, porém não é a melhor o
 -  Dificulta o gerenciamento independente da TV
 -  Pode gerar mais cabos e menos organização
 
-Caso a unidade opte por HDMI, será necessário organizar a passagem do cabo até a TV.
+Caso a unidade opte por utilizar conexão HDMI, será necessário providenciar um computador dedicado ou manter um computador conectado permanentemente à TV, além da infraestrutura necessária para passagem do cabo.
 
 ---
 
