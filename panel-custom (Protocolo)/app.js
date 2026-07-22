@@ -19,19 +19,24 @@ function storageSet(key, value) {
 }
 
 async function getConfig() {
-  const local = storageGet("config");
+  try {
+    const resp = await fetch(`/config.json?v=${Date.now()}`, {
+      cache: "no-store"
+    });
 
-  if (local && local.clientId && local.clientSecret) {
-    return local;
-  }
+    if (!resp.ok) {
+      throw new Error(`Erro ao carregar config.json: ${resp.status}`);
+    }
 
-  const resp = await fetch("config.json");
+    const config = await resp.json();
 
-  if (!resp.ok) {
+    config.server = `${window.location.protocol}//${window.location.hostname}`;
+
+    return config;
+  } catch (erro) {
+    console.error("Falha ao carregar configuração:", erro);
     return null;
   }
-
-  return await resp.json();
 }
 
 function isTokenValid() {
@@ -286,7 +291,7 @@ function tocarAlerta(alerta) {
 
 function falar(nome, local) {
   const texto = `${nome}. ${local}`;
-  const url = `http://192.168.0.16:5001/say?text=${encodeURIComponent(texto)}&voice=letícia-f123&format=wav`;
+  const url = `http://192.168.0.104:5001/say?text=${encodeURIComponent(texto)}&voice=letícia-f123&format=wav`;
 
   const audio = new Audio(url);
   audio.play().catch((err) => {
