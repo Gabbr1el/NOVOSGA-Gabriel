@@ -2,7 +2,7 @@ services:
   novosga:
     build: .
     image: novosga/novosga:2.2-standalone
-    restart: always
+    restart: unless-stopped
     depends_on:
       - mysqldb
     ports:
@@ -10,14 +10,14 @@ services:
     volumes:
       - ./imagens:/var/www/html/public/images
       - ./novosga-custom/custom.css:/var/www/html/public/custom.css
-      - ./templates/skeleton.html.twig:/var/www/html/templates/skeleton.html.twig
+      #- ./templates/skeleton.html.twig:/var/www/html/templates/skeleton.html.twig
       - ./NovosgaCustomersBundle.pt_BR.xlf:/var/www/html/vendor/novosga/customers-bundle/src/Resources/translations/NovosgaCustomersBundle.pt_BR.xlf
       - ./NovosgaTriageBundle.pt_BR.xlf:/var/www/html/vendor/novosga/triage-bundle/src/Resources/translations/NovosgaTriageBundle.pt_BR.xlf
       - ./NovosgaAttendanceBundle.pt_BR.xlf:/var/www/html/vendor/novosga/attendance-bundle/src/Resources/translations/NovosgaAttendanceBundle.pt_BR.xlf
-      - ./templates/attendance-index.html.twig:/var/www/html/vendor/novosga/attendance-bundle/src/Resources/views/default/index.html.twig
-      - ./templates/security/login.html.twig:/var/www/html/templates/security/login.html.twig    
-      - ./templates/base.html.twig:/var/www/html/templates/base.html.twig
-      - ./templates:/var/www/html/templates
+      #- ./templates/attendance-index.html.twig:/var/www/html/vendor/novosga/attendance-bundle/src/Resources/views/default/index.html.twig
+      #- ./templates/security/login.html.twig:/var/www/html/templates/security/login.html.twig    
+      #- ./templates/base.html.twig:/var/www/html/templates/base.html.twig
+      #- ./templates:/var/www/html/templates
 
     environment:
       APP_ENV: 'prod'
@@ -41,7 +41,7 @@ services:
   
   mercure:
     image: novosga/mercure:v0.11
-    restart: always
+    restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
@@ -51,14 +51,14 @@ services:
   
   tts:
     image: ghcr.io/aculeasis/rhvoice-rest:latest
-    restart: always
+    restart: unless-stopped
     ports:
       - "5001:8080"
 
 
   panel:
     image: novosga/panel-app
-    restart: always
+    restart: unless-stopped
     depends_on:
       - novosga
     ports:
@@ -71,7 +71,7 @@ services:
 
   panel2:
     image: novosga/panel-app
-    restart: always
+    restart: unless-stopped
     depends_on:
       - novosga
     ports:
@@ -85,7 +85,7 @@ services:
 
   mysqldb:
     image: mysql:8.0
-    restart: always
+    restart: unless-stopped
     ports:
       - "3307:3306"
     environment:
