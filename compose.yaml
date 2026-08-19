@@ -127,12 +127,12 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
 
-  adminer:
-    image: adminer:latest
-    restart: unless-stopped
-    depends_on:
-      - mysqldb
-    ports:
-      - "8083:8080"
+  # adminer:
+  #   image: adminer:latest
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - mysqldb
+  #   ports:
+  #     - "8083:8080"
 volumes:
   mysql_data:
