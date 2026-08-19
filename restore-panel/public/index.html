@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Restauração MySQL</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="shell">
+    <section class="card" aria-labelledby="title">
+      <header>
+        <div class="mark" aria-hidden="true">↺</div>
+        <div>
+          <p class="eyebrow">OPERAÇÃO DE RESGATE</p>
+          <h1 id="title">Restauração MySQL</h1>
+          <p class="subtitle">Importe um dump SQL ou log binário com segurança.</p>
+        </div>
+      </header>
+
+      <form id="login-form" class="stack" autocomplete="off">
+        <label for="password">Senha administrativa</label>
+        <input id="password" name="password" type="password" minlength="12" required autocomplete="current-password" placeholder="Digite a senha do painel">
+        <button type="submit">Entrar</button>
+      </form>
+
+      <form id="restore-form" class="stack hidden" enctype="multipart/form-data">
+        <div class="notice"><strong>Atenção:</strong> a importação pode sobrescrever dados. Confirme o banco alvo antes de continuar.</div>
+        <label for="database">Banco de dados alvo</label>
+        <input id="database" name="database" type="text" maxlength="64" pattern="[A-Za-z0-9_]+" required placeholder="ex.: novosga2" autocomplete="off">
+        <label for="backup">Arquivo de backup</label>
+        <label class="file-picker" for="backup">
+          <span id="file-label">Selecionar .sql, .bak ou binlog</span>
+          <small>O arquivo é transmitido em streaming e removido após o processamento.</small>
+        </label>
+        <input id="backup" name="backup" type="file" accept=".sql,.bak,.bin,.binlog,application/sql,text/plain,application/octet-stream" required>
+        <button id="restore-button" type="submit">
+          <span class="button-text">Importar Banco de Dados</span>
+          <span class="spinner hidden" aria-hidden="true"></span>
+        </button>
+        <button id="logout-button" class="secondary" type="button">Sair</button>
+      </form>
+
+      <div id="feedback" class="feedback hidden" role="status" aria-live="polite"></div>
+    </section>
+  </main>
+  <script src="/app.js" defer></script>
+</body>
+</html>
