@@ -131,7 +131,7 @@ services:
 
       SECURE_COOKIE: "false"
 
-      MAX_UPLOAD_MB: 2048
+      MAX_UPLOAD_MB: 4096
       RESTORE_TIMEOUT_SECONDS: 7200
 
       TZ: America/Bahia
@@ -200,7 +200,6 @@ services:
 
     ports:
       - "127.0.0.1:8085:8080"
-
 
 volumes:
   mysql_data:
