@@ -1,12 +1,18 @@
 services:
+
   novosga:
     build: .
     image: novosga/novosga:2.2-standalone
     restart: unless-stopped
+
+    # Aguarda o MySQL ficar realmente pronto
     depends_on:
-      - mysqldb
+      mysqldb:
+        condition: service_healthy
+
     ports:
       - "8080:8080"
+
     volumes:
       - ./imagens:/var/www/html/public/images
       - ./novosga-custom/custom.css:/var/www/html/public/custom.css
@@ -17,36 +23,48 @@ services:
     environment:
       APP_ENV: 'prod'
       DATABASE_URL: 'mysql://novosga:150769@mysqldb:3306/novosga2?charset=utf8mb4&serverVersion=8.0'
+
       NOVOSGA_ADMIN_USERNAME: 'admin'
       NOVOSGA_ADMIN_PASSWORD: '123456'
       NOVOSGA_ADMIN_FIRSTNAME: 'Administrador'
       NOVOSGA_ADMIN_LASTNAME: 'Global'
+
       NOVOSGA_UNITY_NAME: 'Secretaria de Saúde - HOME'
       NOVOSGA_UNITY_CODE: 'U01'
+
       NOVOSGA_NOPRIORITY_NAME: 'Normal'
       NOVOSGA_NOPRIORITY_DESCRIPTION: 'Atendimento normal'
+
       NOVOSGA_PRIORITY_NAME: 'Prioridade'
       NOVOSGA_PRIORITY_DESCRIPTION: 'Atendimento prioritário'
+
       NOVOSGA_PLACE_NAME: 'Guichê'
+
       TZ: 'America/Sao_Paulo'
       APP_LANGUAGE: 'pt_BR'
+
       MERCURE_URL: http://mercure:3000/.well-known/mercure
       MERCURE_PUBLIC_URL: http://localhost:3000/.well-known/mercure
       MERCURE_JWT_SECRET: "eyJhbGciOiJIUzI1NiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlsiKiJdfX0.Carr3UqDSoWjUY4fCOrizjTZ4a2LQ6cx35cd6QdahZY"
-  
+
+
   mercure:
     image: novosga/mercure:v0.11
     restart: unless-stopped
+
     ports:
       - "3000:3000"
+
     environment:
       SERVER_NAME: ":3000"
       MERCURE_PUBLISHER_JWT_KEY: "eyJhbGciOiJIUzI1NiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlsiKiJdfX0.Carr3UqDSoWjUY4fCOrizjTZ4a2LQ6cx35cd6QdahZY"
       MERCURE_EXTRA_DIRECTIVES: "anonymous 1; cors_origins *"
-  
+
+
   tts:
     image: ghcr.io/aculeasis/rhvoice-rest:latest
     restart: unless-stopped
+
     ports:
       - "5001:8080"
 
@@ -54,92 +72,136 @@ services:
   panel:
     image: novosga/panel-app
     restart: unless-stopped
+
     depends_on:
       - novosga
+
     ports:
       - "8081:80"
+
     environment:
       VUE_APP_API_BASE_URL: http://localhost
       VUE_APP_MERCURE_URL: http://localhost:3000/.well-known/mercure
+
     volumes:
       - ./panel-custom:/usr/share/nginx/html
+
 
   panel2:
     image: novosga/panel-app
     restart: unless-stopped
+
     depends_on:
       - novosga
+
     ports:
       - "8082:80"
+
     environment:
       VUE_APP_API_BASE_URL: http://localhost
       VUE_APP_MERCURE_URL: http://localhost:3000/.well-known/mercure
+
     volumes:
-      - ./panel-custom (Protocolo):/usr/share/nginx/html
-    
+      - "./panel-custom (Protocolo):/usr/share/nginx/html"
+
+
   restore-panel:
     build:
       context: ./restore-panel
+
     image: novosga/mysql-restore-panel:1.0.0
     restart: unless-stopped
+
     depends_on:
       - mysqldb
+
     ports:
-    # a porta está com ip pois ela so vai permitir acessar pelo proprio computador
+      # Somente acesso pelo próprio computador
       - "127.0.0.1:8083:8080"
+
     environment:
       DB_HOST: mysqldb
       DB_PORT: 3306
       DB_USER: ${RESTORE_DB_USER}
       DB_PASSWORD: ${RESTORE_DB_PASSWORD}
       DB_AUTO_CREATE: "false"
+
       ADMIN_PASSWORD: ${RESTORE_ADMIN_PASSWORD}
       SESSION_SECRET: ${RESTORE_SESSION_SECRET}
+
       SECURE_COOKIE: "false"
+
       MAX_UPLOAD_MB: 2048
       RESTORE_TIMEOUT_SECONDS: 7200
+
       TZ: America/Bahia
+
     read_only: true
+
     tmpfs:
       - /tmp:size=3G,mode=1770,uid=1000,gid=1000
+
     cap_drop:
       - ALL
+
     security_opt:
       - no-new-privileges:true
-    
+
+
   portainer:
     image: portainer/portainer-ce:lts
     restart: unless-stopped
+
     ports:
       - "127.0.0.1:8084:9443"
+
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - portainer_data:/data
 
+
   mysqldb:
     image: mysql:8.0
     restart: unless-stopped
+
     ports:
       - "3307:3306"
+
     environment:
       MYSQL_USER: 'novosga'
       MYSQL_DATABASE: 'novosga2'
       MYSQL_ROOT_PASSWORD: '150769'
       MYSQL_PASSWORD: '150769'
       TZ: 'America/Sao_Paulo'
-  
-      
+
+    # Docker só considera o banco saudável
+    # quando o MySQL já estiver respondendo
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
     volumes:
       - mysql_data:/var/lib/mysql
-      
+
 
   adminer:
     image: adminer:latest
     restart: unless-stopped
+
     depends_on:
       - mysqldb
+
     ports:
       - "127.0.0.1:8085:8080"
+
+
 volumes:
   mysql_data:
   portainer_data:
