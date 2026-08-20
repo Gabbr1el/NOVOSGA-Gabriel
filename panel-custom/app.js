@@ -32,7 +32,6 @@ async function getConfig() {
 
     // Mantém usuário, senha, clientId e clientSecret do config.json,
     // mas ignora o endereço "server" salvo nele ou no navegador.
-    config.server = `${window.location.protocol}//${window.location.hostname}`;
 
     return config;
   } catch (erro) {

@@ -30,7 +30,6 @@ async function getConfig() {
 
     const config = await resp.json();
 
-    config.server = `${window.location.protocol}//${window.location.hostname}`;
 
     return config;
   } catch (erro) {

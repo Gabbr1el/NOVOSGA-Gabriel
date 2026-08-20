@@ -1,11 +1,11 @@
 {
-  "server": "http//localhost",
-  "unity": 3,
-  "services": [5],
+  "server": "http://localhost:8080",
+  "unity": 2,
+  "services": [6],
   "alert": "ding-dong.wav",
   "speech": true,
   "username": "admin",
   "password": "123456",
-  "clientId": "21b4c0098f25d8afa9b25008b4a5b49c",
-  "clientSecret": "b08b7c16e171825357942b49bec9bf31733ad51255730d0b01b469913bfd8b88432f8dedab01d6a717314671f0cc01dc7f02b8fb1233aa464b25b48824a81ab5"
+  "clientId": "c084f82154484efd44dc3a78d3dbabcf",
+  "clientSecret": "0cd92e0021fde22370886f11c1165393324b5dbd3bf7ea721e15fd2628f40cad3bc2324e10892f21a3739f2861da96a87a211f875b6452a52e4dd873c31c39ca"
 }
