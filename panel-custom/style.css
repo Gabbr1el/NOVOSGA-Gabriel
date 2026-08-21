@@ -1,5 +1,12 @@
+
 * {
   box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
 }
 
 body {
@@ -12,122 +19,205 @@ body {
 .painel {
   width: 100vw;
   height: 100vh;
-  display: flex;
-  flex-direction: column;
+  height: 100dvh;
+
+  display: grid;
+
+  /* antes: auto minmax(0, 1fr) 230px */
+  grid-template-rows: auto minmax(0, 1fr) 160px;
+
+  overflow: hidden;
 }
 
-.historico {
-  border-left: 4px solid black;
-  border-right: 4px solid black;
-  padding: 20px;
 
-}
-
-.chamada {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  color: rgb(0, 0, 0);
-  text-align: center;
-  padding: 40px;
-}
-
-.chamada h1 {
-  font-size: clamp(70px, 9vw, 160px);
-  margin: 0;
-  line-height: 1.1;
-  text-shadow: 3px 3px 8px #999;
-  word-break: break-word;
-}
-
-.chamada h2 {
-  font-size: clamp(60px, 6vw, 100px);
-  margin: 0px 0 0;
-  color:  #000000;
-  
-  -webkit-text-stroke: 1px;
-  -webkit-text-stroke-color: black;
-}
-.chamada p{
-  font-size: 100px;
-  margin: 0px;
-}
+/* ======================
+   CABEÇALHO
+   ====================== */
 
 .cabecalho {
-  height: 100px;
-  display: flex;
-  align-items: bottom;
-  grid-template-columns: 350px 1fr;
-  justify-content: center;  
-}
-.navbar {
-  padding: 20px;  
-  display: flex;  
+  min-height: 70px;
 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 5px 15px;
+}
+
+.navbar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.logos {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .logos img {
-  display: flex ;
-  max-width: 400px;
-  max-height: 400px;
-  align-content: center ;
-  align-items: center;
-  display: flex;
+  display: block;
+
+  width: auto;
+
+  /* antes: 400px / 130px */
+  max-width: min(330px, 50vw);
+  max-height: 90px;
+
+  object-fit: contain;
 }
 
+
+/* ======================
+   CHAMADA PRINCIPAL
+   ====================== */
+
+.chamada {
+  min-height: 0;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  color: black;
+  text-align: center;
+
+  /* antes 10px 30px */
+  padding: 5px 20px;
+
+  overflow: hidden;
+}
+
+.chamada h1 {
+  width: 100%;
+  max-width: 1500px;
+
+  /*
+   ANTES:
+   clamp(110px, 6vw, 110px)
+
+   Agora ele realmente é responsivo.
+  */
+  font-size: clamp(45px, 6vw, 85px);
+
+  line-height: 0.95;
+  margin: 0;
+
+  text-shadow: 3px 3px 8px #999;
+
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.chamada p {
+  /* antes 45px até 75px */
+  font-size: clamp(28px, 4vw, 55px);
+
+  line-height: 1;
+  margin: 5px 0;
+}
+
+.chamada h2 {
+  /* antes 42px até 75px */
+  font-size: clamp(28px, 4vw, 55px);
+
+  line-height: 1;
+  margin: 3px 0 0;
+
+  color: black;
+
+  -webkit-text-stroke: 1px black;
+}
+
+
+/* ======================
+   RODAPÉ
+   ====================== */
+
 .rodape {
-  height: 250px;
+  min-height: 0;
+
+  /* antes 230px */
+  height: 160px;
+
   display: grid;
-  grid-template-columns: 350px 1fr;
-  border-top: 4px solid black;
+
+  /* antes 350px */
+  grid-template-columns: 240px minmax(0, 1fr);
+
+  border-top: 3px solid black;
+
+  overflow: hidden;
 }
 
 .hora {
+  min-width: 0;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 75px;
+
+  /* antes 42px até 75px */
+  font-size: clamp(30px, 4vw, 52px);
+
   font-weight: bold;
+
   background: #f2f2f2;
+
   text-shadow: 2px 2px 5px #aaa;
 }
 
 .historico {
-  background: #cef79ff8;
-  border-left: 4px solid black;
-  border-right: 4px solid black;
-  padding: 20px;
-  
+  min-width: 0;
+  min-height: 0;
 
+  background: #cef79ff8;
+
+  border-left: 3px solid black;
+
+  /* antes 16px */
+  padding: 8px;
+
+  overflow: hidden;
 }
 
 .historico h3 {
-  margin: 0 0 5px;
-  font-size: 26px;
+  margin: 0 0 3px;
+
+  /* antes 26px */
+  font-size: 20px;
 }
 
 #lista {
+  height: calc(100% - 26px);
+
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-  height: 93%;
-  
+
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  gap: 0;
 }
 
 .item {
   position: relative;
-  height: 80%;
+
   min-width: 0;
-  padding: 0px 19px 50px;
-  border-right: 4px solid rgba(0, 0, 0, 0.297);
-  
+  min-height: 0;
+
+  /* antes: 5px 15px 48px */
+  padding: 3px 8px 34px;
+
+  border-right: 3px solid rgba(0, 0, 0, 0.297);
+
   display: flex;
   align-items: center;
   justify-content: center;
 
   text-align: center;
+
+  overflow: hidden;
 }
 
 .item:last-child {
@@ -136,26 +226,91 @@ body {
 
 .item strong {
   display: block;
-  font-size: 55px;
-  line-height: 1.0;
-  font-weight: 700;
-  padding: 18px;
+
   max-width: 100%;
-  overflow: hidden;
-  word-break: break-word;
+
+  /* antes 28px até 50px */
+  font-size: clamp(20px, 2.5vw, 35px);
+
+  line-height: 1;
+
+  font-weight: 700;
+
+  padding: 4px;
+
+  overflow-wrap: anywhere;
 }
 
 .item span {
   position: absolute;
-  bottom: 10px;
-  left: 0;
-  right: 0;
-  font-weight: bold;
-  
-  font-size: 35px;
+
+  bottom: 5px;
+  left: 4px;
+  right: 4px;
+
+  /* antes 20px até 32px */
+  font-size: clamp(15px, 1.7vw, 23px);
+
   line-height: 1.1;
+
+  font-weight: bold;
+
   text-align: center;
 }
+.popup-som {
+  position: fixed;
+  inset: 0;
 
+  background: rgba(0, 0, 0, 0.75);
 
+  display: flex;
+  justify-content: center;
+  align-items: center;
 
+  z-index: 99999;
+}
+
+.popup-som-caixa {
+  width: min(500px, 80vw);
+
+  background: white;
+  color: black;
+
+  padding: 40px;
+  border-radius: 15px;
+
+  text-align: center;
+
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.6);
+}
+
+.popup-som-caixa h2 {
+  margin: 0 0 15px;
+
+  font-size: 40px;
+}
+
+.popup-som-caixa p {
+  font-size: 24px;
+  margin-bottom: 30px;
+}
+
+#btnAtivarSom {
+  width: 200px;
+  height: 80px;
+
+  font-size: 32px;
+  font-weight: bold;
+
+  cursor: pointer;
+
+  border: 3px solid black;
+  border-radius: 10px;
+
+  background: #cef79f;
+  color: black;
+}
+
+#btnAtivarSom:focus {
+  outline: 6px solid #333;
+}

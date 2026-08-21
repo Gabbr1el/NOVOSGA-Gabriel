@@ -203,15 +203,15 @@ services:
       - mysql_data:/var/lib/mysql
 
 
-  # adminer:
-  #   image: adminer:latest
-  #   restart: unless-stopped
+    #adminer:
+    #  image: adminer:latest
+    #  restart: unless-stopped
 
-  #   depends_on:
-  #     - mysqldb
+    #  depends_on:
+    #    - mysqldb
 
-  #   ports:
-  #     - "127.0.0.1:8085:8080"
+    #  ports:
+    #    - "127.0.0.1:8085:8080"
 
 volumes:
   mysql_data:
