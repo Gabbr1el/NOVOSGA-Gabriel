@@ -289,8 +289,9 @@ function tocarAlerta(alerta) {
 }
 
 function falar(nome, local) {
-  const texto = `${nome}. ${local}`;
-  const url = `http://192.168.0.104:5001/say?text=${encodeURIComponent(texto)}&voice=letícia-f123&format=wav`;
+  const texto = `${nome}. Por favor, dirigir-se a ${local}.`;
+  const url = `http://localhost:5001/say?text=${encodeURIComponent(texto)}&voice=letícia-f123&format=wav`;
+  
 
   const audio = new Audio(url);
   audio.play().catch((err) => {

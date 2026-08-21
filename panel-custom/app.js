@@ -294,25 +294,15 @@ function falar(nome, local) {
   if (!("speechSynthesis" in window)) return;
 
   speechSynthesis.cancel();
+}
+function falar(nome, local) {
+  const texto = `${nome}. Por favor, dirigir-se a ${local}.`;
+  const url = `http://localhost:5001/say?text=${encodeURIComponent(texto)}&voice=letícia-f123&format=wav`;
 
-  const nomecompleto = new SpeechSynthesisUtterance(`${nome}`);
-
-  nomecompleto.lang = "pt-BR";
-  nomecompleto.rate = 0.7 ;
-  nomecompleto.pitch = 1;
-  nomecompleto.volume = 1;
-
-  speechSynthesis.speak(nomecompleto);
-  
-  const localizacao = new SpeechSynthesisUtterance(`${local}`);
-
-  localizacao.lang = "pt-BR";
-  localizacao.rate = 0.5;
-  localizacao.pitch = 1;
-  localizacao.volume = 1;
-  
-  speechSynthesis.speak(localizacao);
-
+  const audio = new Audio(url);
+  audio.play().catch((err) => {
+    console.warn("Erro ao tocar voz:", err);
+  });
 }
 
 function mostrarErro(titulo, subtitulo) {
