@@ -30,10 +30,16 @@ async function getConfig() {
 
     const config = await resp.json();
 
-    // Mantém usuário, senha, clientId e clientSecret do config.json,
-    // mas ignora o endereço "server" salvo nele ou no navegador.
+    const host = window.location.hostname;
+
+    config.server =
+      `${window.location.protocol}//${host}:8080`;
+
+    config.ttsServer =
+      `${window.location.protocol}//${host}:5001`;
 
     return config;
+
   } catch (erro) {
     console.error("Falha ao carregar configuração:", erro);
     return null;
@@ -220,7 +226,7 @@ async function carregarChamadas() {
       tocarAlerta(config.alert);
 
       setTimeout(() => {
-        falar(nome, local);
+        falar(nome, local, config);
       }, 2500);
     }
   } catch (e) {
@@ -290,18 +296,113 @@ function tocarAlerta(alerta) {
   
 }
 
-function falar(nome, local) {
-  if (!("speechSynthesis" in window)) return;
+function numeroPorExtenso(n) {
+  n = Number(n);
 
-  speechSynthesis.cancel();
+  const unidades = [
+    "zero", "uumm", "dois", "três", "quatro",
+    "cinco", "seis", "sete", "oito", "nove"
+  ];
+
+  const especiais = [
+    "dez", "onze", "doze", "treze", "quatorze",
+    "quinze", "dezesseis", "dezessete",
+    "dezoito", "dezenove"
+  ];
+
+  const dezenas = [
+    "", "", "vinte", "trinta", "quarenta",
+    "cinquenta", "sessenta", "setenta",
+    "oitenta", "noventa"
+  ];
+
+  const centenas = [
+    "", "cento", "duzentos", "trezentos",
+    "quatrocentos", "quinhentos",
+    "seiscentos", "setecentos",
+    "oitocentos", "novecentos"
+  ];
+
+  function ate999(num) {
+    if (num === 0) return "";
+
+    if (num < 10) return unidades[num];
+
+    if (num < 20) return especiais[num - 10];
+
+    if (num < 100) {
+      const d = Math.floor(num / 10);
+      const u = num % 10;
+
+      return dezenas[d] + (u ? ` e ${unidades[u]}` : "");
+    }
+
+    if (num === 100) return "cem";
+
+    const c = Math.floor(num / 100);
+    const resto = num % 100;
+
+    return centenas[c] + (resto ? ` e ${ate999(resto)}` : "");
+  }
+
+  if (n < 1000) {
+    return ate999(n);
+  }
+
+  if (n < 1000000) {
+    const milhares = Math.floor(n / 1000);
+    const resto = n % 1000;
+
+    let texto =
+      milhares === 1
+        ? "mil"
+        : `${ate999(milhares)} mil`;
+
+    if (resto) {
+      texto += resto < 100 || resto % 100 === 0
+        ? ` e ${ate999(resto)}`
+        : ` ${ate999(resto)}`;
+    }
+
+    return texto;
+  }
+
+  return String(n);
 }
-function falar(nome, local) {
-  const texto = `${nome}. Por favor, dirigir-se a ${local}.`;
-  const url = `http://localhost:5001/say?text=${encodeURIComponent(texto)}&voice=letícia-f123&format=wav`;
+
+
+function falar(nome, local, config) {
+  const localFalado = local.replace(
+    /\s+(\d+)$/,
+    (_, numero) => {
+      const extenso = numeroPorExtenso(numero);
+
+      return `, ${extenso}`;
+    }
+  );
+
+  const texto =
+    `${nome}. Por favor, dirigir-se a ${localFalado}.`;
+
+  // Usa o configurado no config.json.
+  // Se não existir, tenta o mesmo computador do painel na porta 5001.
+  const ttsServer = (
+    config.ttsServer ||
+    `${window.location.protocol}//${window.location.hostname}:5001`
+  ).replace(/\/$/, "");
+
+  const voz = config.ttsVoice || "letícia-f123";
+
+  const url =
+    `${ttsServer}/say` +
+    `?text=${encodeURIComponent(texto)}` +
+    `&voice=${encodeURIComponent(voz)}` +
+    `&format=wav`;
 
   const audio = new Audio(url);
+
   audio.play().catch((err) => {
-    console.warn("Erro ao tocar voz:", err);
+    console.warn("Erro ao tocar TTS:", err);
   });
 }
 

@@ -7,5 +7,7 @@
   "username": "admin",
   "password": "123456",
   "clientId": "157b6a65d779f8303d2dda0e1ca1e955",
-  "clientSecret": "acb00b7bf615b6b10ae4071a827d2de541e0e3b802bcad40de0a6cd0a4589f9e27931abbbd214127a92ee0d5b9bbe5efa58028100ceccd2d7323eb203e7540bd"
+  "clientSecret": "acb00b7bf615b6b10ae4071a827d2de541e0e3b802bcad40de0a6cd0a4589f9e27931abbbd214127a92ee0d5b9bbe5efa58028100ceccd2d7323eb203e7540bd",
+  "ttsServer": "http://localhost:5001",
+  "ttsVoice": "letícia-f123"
 }   
