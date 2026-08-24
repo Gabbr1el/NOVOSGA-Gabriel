@@ -20,6 +20,7 @@ use Novosga\Entity\AtendimentoInterface;
 use Novosga\Entity\ServicoInterface;
 use Novosga\Entity\UnidadeInterface;
 use Novosga\Repository\AtendimentoRepositoryInterface;
+use Novosga\Service\AtendimentoServiceInterface;
 
 /**
  * @extends ServiceEntityRepository<AtendimentoInterface>
@@ -94,5 +95,37 @@ class AtendimentoRepository extends ServiceEntityRepository implements Atendimen
             ->getOneOrNullResult();
 
         return $atendimento;
+    }
+
+    /** @return Atendimento[] */
+    public function findIssuedByCustomer(UnidadeInterface $unidade, ?string $nome, ?string $cpf): array
+    {
+        $qb = $this->createQueryBuilder('a')
+            ->innerJoin('a.cliente', 'c')
+            ->andWhere('a.unidade = :unidade')
+            ->andWhere('a.status = :status')
+            ->setParameter('unidade', $unidade)
+            ->setParameter('status', AtendimentoServiceInterface::SENHA_EMITIDA)
+            ->orderBy('a.dataChegada', 'DESC')
+            ->setMaxResults(50);
+
+        if ($nome !== null && $nome !== '') {
+            $qb
+                ->andWhere('LOWER(c.nome) LIKE LOWER(:nome)')
+                ->setParameter('nome', '%' . $nome . '%');
+        }
+
+        if ($cpf !== null && $cpf !== '') {
+            $digits = preg_replace('/\D+/', '', $cpf);
+            $formatted = strlen($digits) === 11
+                ? preg_replace('/(\d{3})(\d{3})(\d{3})(\d{2})/', '$1.$2.$3-$4', $digits)
+                : $digits;
+            $qb
+                ->andWhere('c.documento LIKE :cpf OR c.documento LIKE :cpfFormatted')
+                ->setParameter('cpf', '%' . $digits . '%')
+                ->setParameter('cpfFormatted', '%' . $formatted . '%');
+        }
+
+        return $qb->getQuery()->getResult();
     }
 }

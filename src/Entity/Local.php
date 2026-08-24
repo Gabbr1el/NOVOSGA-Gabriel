@@ -43,6 +43,12 @@ class Local implements TimestampableEntityInterface, LocalInterface
     #[ORM\Column(length: 20, unique: true)]
     private ?string $nome = null;
 
+    #[ORM\Column(options: ['default' => true])]
+    private bool $permiteTrocarLocal = true;
+
+    #[ORM\Column(options: ['default' => true])]
+    private bool $permiteTrocarNumero = true;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -67,6 +73,30 @@ class Local implements TimestampableEntityInterface, LocalInterface
         return $this->nome;
     }
 
+    public function isPermiteTrocarLocal(): bool
+    {
+        return $this->permiteTrocarLocal;
+    }
+
+    public function setPermiteTrocarLocal(bool $permiteTrocarLocal): static
+    {
+        $this->permiteTrocarLocal = $permiteTrocarLocal;
+
+        return $this;
+    }
+
+    public function isPermiteTrocarNumero(): bool
+    {
+        return $this->permiteTrocarNumero;
+    }
+
+    public function setPermiteTrocarNumero(bool $permiteTrocarNumero): static
+    {
+        $this->permiteTrocarNumero = $permiteTrocarNumero;
+
+        return $this;
+    }
+
     public function __toString()
     {
         return $this->getNome();
@@ -78,6 +108,8 @@ class Local implements TimestampableEntityInterface, LocalInterface
         return [
             'id' => $this->getId(),
             'nome' => $this->getNome(),
+            'permiteTrocarLocal' => $this->isPermiteTrocarLocal(),
+            'permiteTrocarNumero' => $this->isPermiteTrocarNumero(),
             'createdAt' => $this->getCreatedAt()?->format('Y-m-d\TH:i:s'),
             'updatedAt' => $this->getUpdatedAt()?->format('Y-m-d\TH:i:s'),
         ];

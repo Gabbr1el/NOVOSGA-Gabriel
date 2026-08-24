@@ -69,6 +69,8 @@ class AtendimentoTest extends TestCase
             'local' => [
                 'id' => 1,
                 'nome' => 'Guichê',
+                'permiteTrocarLocal' => true,
+                'permiteTrocarNumero' => true,
                 'createdAt' => '2025-08-01T10:00:00',
                 'updatedAt' => '2025-08-02T12:00:00',
             ],
@@ -133,6 +135,8 @@ class AtendimentoTest extends TestCase
             'local' => [
                 'id' => 1,
                 'nome' => 'Guichê',
+                'permiteTrocarLocal' => true,
+                'permiteTrocarNumero' => true,
                 'createdAt' => '2025-08-01T10:00:00',
                 'updatedAt' => '2025-08-02T12:00:00',
             ],

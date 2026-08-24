@@ -586,7 +586,7 @@ class AtendimentoServiceTest extends TestCase
         $servico = new Servico();
         $prioridade = new Prioridade();
         $servicoUnidade = new ServicoUnidade();
-        $cliente = (new Cliente())->setDocumento('1234567890');
+        $cliente = (new Cliente())->setDocumento('12345678901');
 
         $this
             ->servicoUnidadeRepository
@@ -598,8 +598,8 @@ class AtendimentoServiceTest extends TestCase
         $this
             ->clienteRepository
             ->expects($this->once())
-            ->method('findOneBy')
-            ->with(['documento' => $cliente->getDocumento()])
+            ->method('findOneByCpf')
+            ->with($cliente->getDocumento())
             ->willReturn($cliente);
 
         $this
@@ -686,7 +686,7 @@ class AtendimentoServiceTest extends TestCase
         $atendimento->setCliente(
             (new Cliente())
                 ->setNome('Customer 1')
-                ->setDocumento('1234567890')
+                ->setDocumento('12345678901')
         );
         $atendimento->setSenha(
             (new Senha())

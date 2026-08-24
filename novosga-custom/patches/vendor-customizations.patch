@@ -1,0 +1,225 @@
+--- a/vendor/novosga/monitor-bundle/src/Resources/views/default/index.html.twig
++++ b/vendor/novosga/monitor-bundle/src/Resources/views/default/index.html.twig
+@@ -11,9 +11,10 @@
+                 </h1>
+                 <p>{{ 'subtitle'|trans }}</p>
+             </div>
+-            <form class="ms-auto" role="search"  v-on:submit.prevent="consulta">
++            <form class="ms-auto" role="search" v-on:submit.prevent="consultarPacientes">
+                 <div class="input-group">
+-                    <input type="text" class="form-search form-control" placeholder="{{ 'placeholder.search'|trans }}" v-model="search">
++                    <input type="text" class="form-search form-control" placeholder="Nome do paciente" v-model="searchName">
++                    <input type="text" class="form-search form-control" maxlength="14" inputmode="numeric" placeholder="CPF" v-model="searchCpf">
+                     <div class="input-group-append">
+                         <button type="submit" class="btn btn-primary" title="{{ 'button.find'|trans }}">
+                             <i class="fa fa-search"></i>
+@@ -93,10 +94,15 @@
+                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                     </div>
+                     <div class="modal-body">
+-                        <form class="row" role="form" v-on:submit.prevent="consultar">
+-                            <div class="col-3">
++                        <form class="row g-2" role="form" v-on:submit.prevent="consultarPacientes">
++                            <div class="col-sm-6">
+                                 <div class="input-group">
+-                                    <input type="text" maxlength="10" class="form-search form-control" placeholder="{{ 'modal.search.placeholder'|trans }}" v-model="search">
++                                    <input type="text" class="form-search form-control" placeholder="Nome do paciente" v-model="searchName">
++                                </div>
++                            </div>
++                            <div class="col-sm-6">
++                                <div class="input-group">
++                                    <input type="text" maxlength="14" inputmode="numeric" class="form-search form-control" placeholder="CPF" v-model="searchCpf">
+                                     <div class="input-group-append">
+                                         <button type="submit" class="btn btn-primary" title="{{ 'modal.search.button.submit'|trans }}">
+                                             <i class="fa fa-search"></i>
+@@ -110,19 +116,18 @@
+                             <table class="table table-hover">
+                                 <thead>
+                                     <tr class="table-primary">
++                                        <th>Paciente</th>
++                                        <th>CPF</th>
+                                         <th>{{ 'label.ticket.number'|trans }}</th>
+                                         <th>{{ 'label.service'|trans }}</th>
+                                         <th>{{ 'label.ticket.arrival_date'|trans }}</th>
+-                                        <th>{{ 'label.ticket.start_date'|trans }}</th>
+-                                        <th>{{ 'label.ticket.end_date'|trans }}</th>
+-                                        <th>{{ 'label.triage'|trans }}</th>
+-                                        <th>{{ 'label.ticket.user'|trans }}</th>
+-                                        <th>{{ 'label.status'|trans }}</th>
+                                     </tr>
+                                 </thead>
+                                 <tbody>
+                                     {% verbatim %}
+                                         <tr v-for="atendimento in searchResult" v-bind:class="{danger: (atendimento.status === 'nao_compareceu' || atendimento.status === 'cancelada')}">
++                                            <td>{{atendimento.cliente?.nome}}</td>
++                                            <td>{{atendimento.cliente?.documento}}</td>
+                                             <td>
+                                                 <a href="#" v-on:click.prevent="view(atendimento)">
+                                                     {{atendimento.senha.format}}
+@@ -136,25 +141,6 @@
+                                                     {{moment(atendimento.dataChegada, 'YYYY-MM-DD HH:mm:ss').format(dateTimeFormat)}}
+                                                 </span>
+                                             </td>
+-                                            <td>
+-                                                <span v-if="atendimento.dataInicio">
+-                                                    {{moment(atendimento.dataInicio, 'YYYY-MM-DD HH:mm:ss').format(dateTimeFormat)}}
+-                                                </span>
+-                                            </td>
+-                                            <td>
+-                                                <span v-if="atendimento.dataFim">
+-                                                    {{moment(atendimento.dataFim, 'YYYY-MM-DD HH:mm:ss').format(dateTimeFormat)}}
+-                                                </span>
+-                                            </td>
+-                                            <td>
+-                                                {{atendimento.triagem?.login}}
+-                                            </td>
+-                                            <td>
+-                                                {{atendimento.usuario?.login}}
+-                                            </td>
+-                                            <td>
+-                                                {{atendimento.status}}
+-                                            </td>
+                                         </tr>
+                                     {% endverbatim %}
+                                 </tbody>
+--- a/vendor/novosga/monitor-bundle/src/Resources/public/js/script.js
++++ b/vendor/novosga/monitor-bundle/src/Resources/public/js/script.js
+@@ -8,7 +8,8 @@
+     new Vue({
+         el: '#monitor',
+         data: {
+-            search: '',
++            searchName: '',
++            searchCpf: '',
+             searchResult: [],
+             servicos: [],
+             atendimento: null,
+@@ -47,18 +48,15 @@
+                 });
+             },
+ 
+-            consulta() {
++            consultarPacientes() {
+                 this.buscaModal.show();
+-                this.consultar();
+-            },
+-
+-            consultar: function () {
+                 var self = this;
+-                
++
+                 App.ajax({
+-                    url: App.url('/novosga.monitor/buscar'),
++                    url: App.url('/novosga.monitor/buscar-paciente'),
+                     data: {
+-                        numero: self.search
++                        nome: self.searchName,
++                        cpf: self.searchCpf.replace(/\D/g, '')
+                     },
+                     success: function (response) {
+                         self.searchResult = response.data;
+--- a/vendor/novosga/triage-bundle/src/Resources/views/default/index.html.twig
++++ b/vendor/novosga/triage-bundle/src/Resources/views/default/index.html.twig
+@@ -36,7 +36,7 @@
+                                 <i class="fa fa-credit-card"></i>
+                             </span>
+                             <label for="cliente-documento" class="sr-only">{{ 'label.customer.id'|trans }}</label>
+-                            <input type="text" id="cliente-documento" list="documentos" class="form-control" maxlength="30" placeholder="{{ 'label.customer.id'|trans }}" v-model="cliente.documento" 
++                            <input type="text" id="cliente-documento" list="documentos" class="form-control" maxlength="14" inputmode="numeric" placeholder="CPF (11 dígitos)" v-model="cliente.documento"
+                                    v-on:input="changeDocumento"
+                                    v-on:change="changeClient"
+                                    v-on:blur="changeClient">
+@@ -121,7 +121,7 @@
+             <div class="modal-dialog">
+                 <div class="modal-content">
+                     <div class="modal-header">
+-                        <h5 class="modal-title">{{ 'label.ticket'|trans }}</h5>
++                        <h5 class="modal-title">Senha gerada:</h5>
+                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                     </div>
+                     <div class="modal-body" v-if="atendimento">
+--- a/vendor/novosga/triage-bundle/src/Resources/public/js/script.js
++++ b/vendor/novosga/triage-bundle/src/Resources/public/js/script.js
+@@ -178,6 +178,17 @@
+             },
+             distribuiSenha(servico, prioridade) {
+                 return new Promise((resolve, reject) => {
++                    const cpf = (this.cliente.documento || '').replace(/\D/g, '');
++                    if (this.cliente.documento && cpf.length !== 11) {
++                        swal({
++                            title: 'CPF inválido',
++                            text: 'O CPF deve conter exatamente 11 dígitos.',
++                            type: 'error'
++                        });
++                        return reject();
++                    }
++                    this.cliente.documento = cpf;
++
+                     if (this.pausado) {
+                         return reject();
+                     }
+@@ -290,7 +301,7 @@
+                 })
+             }, 400),
+             changeDocumento() {
+-                this.cliente.documento = this.cliente.documento.toUpperCase();
++                this.cliente.documento = this.cliente.documento.replace(/\D/g, '').slice(0, 11);
+                 this.fetchClients();
+             },
+             changeClient() {
+--- a/vendor/novosga/customers-bundle/src/Resources/views/default/form.html.twig
++++ b/vendor/novosga/customers-bundle/src/Resources/views/default/form.html.twig
+@@ -72,4 +72,27 @@
+ {% block javascripts %}
+     {{ parent() }}
+     <script src="{{ asset('bundles/novosgacustomers/js/script.js') }}"></script>
++    <script>
++        document.addEventListener('DOMContentLoaded', function () {
++            const cpf = document.querySelector('input[name$="[documento]"]');
++            if (!cpf) {
++                return;
++            }
++
++            cpf.maxLength = 14;
++            cpf.inputMode = 'numeric';
++            cpf.placeholder = 'CPF (11 dígitos)';
++            cpf.addEventListener('input', function () {
++                cpf.value = cpf.value.replace(/\D/g, '').slice(0, 11);
++            });
++            cpf.form.addEventListener('submit', function (event) {
++                cpf.value = cpf.value.replace(/\D/g, '');
++                if (cpf.value.length !== 11) {
++                    event.preventDefault();
++                    alert('O CPF deve conter exatamente 11 dígitos.');
++                    cpf.focus();
++                }
++            });
++        });
++    </script>
+ {% endblock %}
+--- a/vendor/novosga/attendance-bundle/src/Resources/views/default/index.html.twig
++++ b/vendor/novosga/attendance-bundle/src/Resources/views/default/index.html.twig
+@@ -419,7 +419,8 @@
+                                 <div class="col-sm-6">
+                                     <div class="mb-3">
+                                         <label class="control-label">{{ 'label.place.number'|trans }}</label>
+-                                        <input type="number" maxlength="3" class="form-control" v-model.number="novoLocal.numeroLocal" required>
++                                        <input type="number" maxlength="3" class="form-control" v-model.number="novoLocal.numeroLocal" :disabled="usuario.local && !usuario.local.permiteTrocarNumero" required>
++                                        <small class="form-text text-muted" v-if="usuario.local && !usuario.local.permiteTrocarNumero">Troca bloqueada na configuração deste local.</small>
+                                     </div>
+                                 </div>
+                                 <div class="col-sm-6">
+@@ -435,11 +436,12 @@
+                                 <div class="col-sm-12">
+                                     <div class="mb-3">
+                                         <label class="control-label">{{ 'label.place'|trans }}</label>
+-                                        <select class="form-control" v-model="novoLocal.local" required>
++                                        <select class="form-control" v-model="novoLocal.local" :disabled="usuario.local && !usuario.local.permiteTrocarLocal" required>
+                                             {% for l in locais %}
+                                                 <option :value="{{ l.id }}" {% if local and local.id == l.id %}selected="selected"{% endif %}>{{ l.nome }}</option>
+                                             {% endfor %}
+                                         </select>
++                                        <small class="form-text text-muted" v-if="usuario.local && !usuario.local.permiteTrocarLocal">Troca bloqueada na configuração deste local.</small>
+                                     </div>
+                                 </div>
+                             </div>

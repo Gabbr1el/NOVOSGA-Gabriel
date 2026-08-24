@@ -970,7 +970,11 @@ class AtendimentoService implements AtendimentoServiceInterface
         }
 
         if (!$clienteExistente && $cliente->getDocumento()) {
-            $clienteExistente = $this->clienteRepository->findOneBy(['documento' => $cliente->getDocumento()]);
+            $clienteExistente = $this->clienteRepository->findOneByCpf($cliente->getDocumento());
+        }
+
+        if (!$clienteExistente && strlen((string) $cliente->getDocumento()) !== 11) {
+            throw new Exception('O CPF deve conter exatamente 11 dígitos.');
         }
 
         if ($clienteExistente) {

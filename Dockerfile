@@ -33,6 +33,8 @@ RUN curl -o composer.phar https://getcomposer.org/download/2.7.2/composer.phar
 RUN set -xe \
     && echo "APP_BUILD_NUMBER=$GIT_COMMIT" >> .env.local \
     && php composer.phar install --no-dev --optimize-autoloader \
+    && git apply --unsafe-paths novosga-custom/patches/vendor-customizations.patch \
+    && php bin/console assets:install public \
     && php composer.phar dump-autoload --no-dev --classmap-authoritative \
     && php composer.phar dump-env prod
 
