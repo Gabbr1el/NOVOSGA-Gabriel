@@ -7,6 +7,9 @@ const state = {
   audioLiberado: false,
   pollingId: null,
   painelIniciado: false,
+  wakeLock: null,
+  wakeLockRequest: null,
+  mediaKeepAlive: null,
 };
 
 const audioAlerta = new Audio();
@@ -16,6 +19,132 @@ audioAlerta.preload = "auto";
 audioTts.preload = "auto";
 
 let configInicial = null;
+
+
+/* =========================================================
+   MANTER TELA ATIVA
+   ========================================================= */
+
+async function manterTelaAtiva() {
+  if (
+    !("wakeLock" in navigator) ||
+    document.visibilityState !== "visible" ||
+    state.wakeLock ||
+    state.wakeLockRequest
+  ) {
+    return;
+  }
+
+  try {
+    state.wakeLockRequest =
+      navigator.wakeLock.request("screen");
+
+    const sentinela =
+      await state.wakeLockRequest;
+
+    state.wakeLock = sentinela;
+
+    sentinela.addEventListener(
+      "release",
+      () => {
+        if (state.wakeLock === sentinela) {
+          state.wakeLock = null;
+        }
+
+        if (document.visibilityState === "visible") {
+          setTimeout(manterTelaAtiva, 1000);
+        }
+      }
+    );
+
+    console.log("Bloqueio de suspensão da tela ativado.");
+  } catch (erro) {
+    console.warn(
+      "Wake Lock indisponível neste navegador ou endereço:",
+      erro
+    );
+  } finally {
+    state.wakeLockRequest = null;
+  }
+}
+
+
+function iniciarFallbackTelaAtiva() {
+  if (state.mediaKeepAlive) {
+    return;
+  }
+
+  try {
+    const canvas =
+      document.createElement("canvas");
+
+    canvas.width = 2;
+    canvas.height = 2;
+
+    if (typeof canvas.captureStream !== "function") {
+      return;
+    }
+
+    const contexto =
+      canvas.getContext("2d");
+
+    let frame = false;
+
+    const desenharFrame = () => {
+      frame = !frame;
+      contexto.fillStyle = frame ? "#000" : "#001";
+      contexto.fillRect(0, 0, 2, 2);
+    };
+
+    desenharFrame();
+
+    const stream =
+      canvas.captureStream(1);
+
+    const video =
+      document.createElement("video");
+
+    video.muted = true;
+    video.autoplay = true;
+    video.playsInline = true;
+    video.setAttribute("aria-hidden", "true");
+    video.style.cssText =
+      "position:fixed;width:1px;height:1px;opacity:.01;pointer-events:none";
+    video.srcObject = stream;
+
+    document.body.appendChild(video);
+
+    const intervalId =
+      setInterval(desenharFrame, 10000);
+
+    state.mediaKeepAlive = {
+      video,
+      stream,
+      intervalId,
+    };
+
+    const promessa = video.play();
+
+    if (promessa) {
+      promessa.catch(erro => {
+        clearInterval(intervalId);
+        stream.getTracks().forEach(track => track.stop());
+        video.remove();
+        state.mediaKeepAlive = null;
+
+        console.warn(
+          "Fallback para manter a tela ativa indisponível:",
+          erro
+        );
+      });
+    }
+  } catch (erro) {
+    console.warn(
+      "Fallback para manter a tela ativa indisponível:",
+      erro
+    );
+  }
+}
 
 
 /* =========================================================
@@ -951,6 +1080,9 @@ async function configurarPopupAudio() {
       "OK pressionado."
     );
 
+    manterTelaAtiva();
+    iniciarFallbackTelaAtiva();
+
 
     /*
      * SEGUNDO:
@@ -1577,6 +1709,17 @@ function mostrarErro(
    ========================================================= */
 
 function iniciarPainel() {
+
+  manterTelaAtiva();
+
+  document.addEventListener(
+    "visibilitychange",
+    () => {
+      if (document.visibilityState === "visible") {
+        manterTelaAtiva();
+      }
+    }
+  );
 
   atualizarHora();
 
