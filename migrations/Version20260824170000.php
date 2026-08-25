@@ -17,12 +17,23 @@ final class Version20260824170000 extends AbstractMigration
         return 'Add independent location and room-number change permissions to attendance places';
     }
 
+    public function isTransactional(): bool
+    {
+        return false;
+    }
+
     public function up(Schema $schema): void
     {
         if ($this->platform instanceof MySQLPlatform) {
-            $this->addSql('ALTER TABLE locais ADD permite_trocar_local TINYINT(1) DEFAULT 1 NOT NULL, ADD permite_trocar_numero TINYINT(1) DEFAULT 1 NOT NULL');
+            $this->addSql(
+                'ALTER TABLE locais ADD permite_trocar_local TINYINT(1) DEFAULT 1 NOT NULL, '
+                . 'ADD permite_trocar_numero TINYINT(1) DEFAULT 1 NOT NULL'
+            );
         } elseif ($this->platform instanceof PostgreSQLPlatform) {
-            $this->addSql('ALTER TABLE locais ADD permite_trocar_local BOOLEAN DEFAULT TRUE NOT NULL, ADD permite_trocar_numero BOOLEAN DEFAULT TRUE NOT NULL');
+            $this->addSql(
+                'ALTER TABLE locais ADD permite_trocar_local BOOLEAN DEFAULT TRUE NOT NULL, '
+                . 'ADD permite_trocar_numero BOOLEAN DEFAULT TRUE NOT NULL'
+            );
         } else {
             throw new AbortMigration(sprintf('Unsupported database platform: %s', get_class($this->platform)));
         }

@@ -20,6 +20,11 @@ final class Version20260825130000 extends AbstractMigration
         return 'Align the deferred attendance index name with Doctrine metadata';
     }
 
+    public function isTransactional(): bool
+    {
+        return false;
+    }
+
     public function up(Schema $schema): void
     {
         $this->renameIndex(self::OLD_INDEX, self::NEW_INDEX);

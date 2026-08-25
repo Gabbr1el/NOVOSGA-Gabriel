@@ -17,6 +17,11 @@ final class Version20260825120000 extends AbstractMigration
         return 'Anchor a deferred attendance immediately after the next queued ticket';
     }
 
+    public function isTransactional(): bool
+    {
+        return false;
+    }
+
     public function up(Schema $schema): void
     {
         if ($this->platform instanceof MySQLPlatform) {
