@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+    <file source-language="pt-BR" target-language="pt-BR" datatype="plaintext" original="NovosgaMonitorBundle.pt_BR.xlf">
+        <body>
+            <trans-unit id="label.customer.id">
+                <source>label.customer.id</source>
+                <target>CPF</target>
+            </trans-unit>
+        </body>
+    </file>
+</xliff>
