@@ -15,6 +15,7 @@ namespace App\Form;
 
 use App\Entity\Local;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -30,6 +31,14 @@ class LocalType extends AbstractType
                 'constraints' => [
                     new Length(min: 1, max: 20),
                 ],
+            ])
+            ->add('permiteTrocarLocal', CheckboxType::class, [
+                'label' => 'Permitir que o atendente troque o local',
+                'required' => false,
+            ])
+            ->add('permiteTrocarNumero', CheckboxType::class, [
+                'label' => 'Permitir que o atendente troque o número da sala',
+                'required' => false,
             ])
         ;
     }
