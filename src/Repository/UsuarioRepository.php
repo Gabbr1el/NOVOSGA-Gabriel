@@ -63,9 +63,16 @@ class UsuarioRepository extends ServiceEntityRepository implements UsuarioReposi
         $servico  = $servicoUnidade->getServico();
         $usuarios = $this
             ->queryBuilderFindByUnidade($unidade, $criteria)
+            ->select('DISTINCT e')
+            ->leftJoin('l.perfil', 'p')
             ->join(\App\Entity\ServicoUsuario::class, 'su', 'WITH', 'su.usuario = e')
             ->andWhere('su.servico = :servico')
+            ->andWhere('su.unidade = :unidade')
+            ->andWhere('e.ativo = TRUE')
+            ->andWhere('e.deletedAt IS NULL')
+            ->andWhere('e.admin = TRUE OR p.modulos LIKE :attendanceModule')
             ->setParameter('servico', $servico)
+            ->setParameter('attendanceModule', '%novosga.attendance%')
             ->getQuery()
             ->getResult();
 

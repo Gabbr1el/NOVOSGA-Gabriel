@@ -30,10 +30,12 @@ use App\Repository\AtendimentoRepository;
 use App\Repository\ClienteRepository;
 use App\Repository\LotacaoRepository;
 use App\Repository\ServicoUnidadeRepository;
+use App\Repository\UsuarioRepository;
 use App\Service\AtendimentoService;
 use App\Service\FilaService;
 use App\Service\MercureService;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use Exception;
 use Novosga\Event\PreTicketCallEvent;
 use Novosga\Event\PreTicketCreateEvent;
@@ -70,6 +72,7 @@ class AtendimentoServiceTest extends TestCase
     private AtendimentoMetadataRepository&MockObject $atendimentoMetaRepository;
     private ServicoUnidadeRepository&MockObject $servicoUnidadeRepository;
     private ClienteRepository&MockObject $clienteRepository;
+    private UsuarioRepository&MockObject $usuarioRepository;
 
     private AtendimentoService $service;
 
@@ -86,6 +89,7 @@ class AtendimentoServiceTest extends TestCase
         $this->atendimentoMetaRepository = $this->createMock(AtendimentoMetadataRepository::class);
         $this->servicoUnidadeRepository = $this->createMock(ServicoUnidadeRepository::class);
         $this->clienteRepository = $this->createMock(ClienteRepository::class);
+        $this->usuarioRepository = $this->createMock(UsuarioRepository::class);
 
         $this->translator->addLoader('array', new ArrayLoader());
 
@@ -101,6 +105,7 @@ class AtendimentoServiceTest extends TestCase
             $this->atendimentoMetaRepository,
             $this->servicoUnidadeRepository,
             $this->clienteRepository,
+            $this->usuarioRepository,
         );
     }
 
@@ -665,6 +670,49 @@ class AtendimentoServiceTest extends TestCase
 
         $this->assertNotNull($atendimento->getId());
         $this->assertSame($agendamento->getCliente(), $atendimento->getCliente());
+    }
+
+    public function testRedirecionarResolvesAndValidatesTargetUser(): void
+    {
+        $actor = (new Usuario())->setId(1);
+        $target = (new Usuario())->setId(2);
+        $targetService = (new Servico())->setId(3);
+        $atendimento = $this->buildAtendimento()
+            ->setUsuario($actor)
+            ->setStatus(AtendimentoService::ATENDIMENTO_INICIADO)
+            ->setDataChegada($this->clock->now());
+        $serviceUnit = (new ServicoUnidade())
+            ->setUnidade($atendimento->getUnidade())
+            ->setServico($targetService);
+
+        $repository = $this->createMock(EntityRepository::class);
+        $repository->expects($this->once())
+            ->method('find')
+            ->with(2)
+            ->willReturn($target);
+        $this->storage->expects($this->once())
+            ->method('getRepository')
+            ->with(Usuario::class)
+            ->willReturn($repository);
+        $this->servicoUnidadeRepository->expects($this->once())
+            ->method('get')
+            ->with($atendimento->getUnidade(), $targetService)
+            ->willReturn($serviceUnit);
+        $this->usuarioRepository->expects($this->once())
+            ->method('findByServicoUnidade')
+            ->with($serviceUnit)
+            ->willReturn([$target]);
+
+        /** @var EntityManagerInterface&MockObject $em */
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects($this->exactly(2))->method('persist');
+        $em->expects($this->once())->method('flush');
+        $this->storage->expects($this->once())->method('getManager')->willReturn($em);
+
+        $redirected = $this->service->redirecionar($atendimento, $actor, $targetService, 2);
+
+        self::assertSame($target, $redirected->getUsuario());
+        self::assertSame($targetService, $redirected->getServico());
     }
 
     private function buildAtendimento(): Atendimento

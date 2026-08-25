@@ -65,6 +65,7 @@ class ServicoUnidadeRepository extends ServiceEntityRepository implements Servic
             ->join('e.servico', 's')
             ->where('e.unidade = :unidade')
             ->andWhere('s = :servico')
+            ->andWhere('e.ativo = TRUE')
             ->andWhere('s.deletedAt IS NULL')
             ->setParameter('servico', $servico)
             ->setParameter('unidade', $unidade)

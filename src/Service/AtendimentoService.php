@@ -27,6 +27,7 @@ use App\Repository\AtendimentoMetadataRepository;
 use App\Repository\AtendimentoRepository;
 use App\Repository\ClienteRepository;
 use App\Repository\ServicoUnidadeRepository;
+use App\Repository\UsuarioRepository;
 use DateTimeInterface;
 use Novosga\Entity\AgendamentoInterface;
 use Novosga\Entity\AtendimentoInterface;
@@ -86,6 +87,7 @@ class AtendimentoService implements AtendimentoServiceInterface
         private readonly AtendimentoMetadataRepository $atendimentoMetaRepository,
         private readonly ServicoUnidadeRepository $servicoUnidadeRepository,
         private readonly ClienteRepository $clienteRepository,
+        private readonly UsuarioRepository $usuarioRepository,
     ) {
     }
 
@@ -621,11 +623,19 @@ class AtendimentoService implements AtendimentoServiceInterface
                 ->find($novoServico);
         }
 
+        if (!$novoServico instanceof ServicoInterface) {
+            throw new Exception('Serviço de destino inválido.');
+        }
+
         if (is_int($novoAtendente)) {
-            $$novoAtendente = $this
+            $atendenteEncontrado = $this
                 ->storage
                 ->getRepository(Usuario::class)
-                ->find($$novoAtendente);
+                ->find($novoAtendente);
+            if (!$atendenteEncontrado instanceof UsuarioInterface) {
+                throw new Exception('Usuário de destino inválido.');
+            }
+            $novoAtendente = $atendenteEncontrado;
         }
 
         $this->dispatcher->dispatch(new PreTicketRedirectEvent(
@@ -992,6 +1002,19 @@ class AtendimentoService implements AtendimentoServiceInterface
         ServicoInterface $novoServico,
         ?UsuarioInterface $novoAtendente = null,
     ): AtendimentoInterface {
+        $servicoUnidade = $this->servicoUnidadeRepository->get($atendimento->getUnidade(), $novoServico);
+        if (!$servicoUnidade) {
+            throw new Exception('Serviço de destino não está ativo nesta unidade.');
+        }
+
+        if ($novoAtendente) {
+            $eligible = $this->usuarioRepository->findByServicoUnidade($servicoUnidade);
+            $eligibleIds = array_map(static fn (UsuarioInterface $usuario) => $usuario->getId(), $eligible);
+            if (!in_array($novoAtendente->getId(), $eligibleIds, true)) {
+                throw new Exception('Usuário não está habilitado para o serviço de destino nesta unidade.');
+            }
+        }
+
         // copiando a senha do atendimento atual
         $novo = new Atendimento();
         $novo
