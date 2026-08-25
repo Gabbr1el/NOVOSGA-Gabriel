@@ -1,0 +1,114 @@
+{% extends "@NovosgaCustomers/base.html.twig" %}
+
+{% trans_default_domain 'NovosgaCustomersBundle' %}
+
+{% block body %}
+    <div class="d-flex">
+        <div>
+            <h1>
+                <i class="fa fa-address-book" aria-hidden="true"></i> {{ 'title'|trans }}
+            </h1>
+            <p>{{ 'subtitle'|trans }}</p>
+        </div>
+    </div>
+        
+    {{ form_start(form) }}
+
+        {% include 'flashMessages.html.twig' %}
+
+        <div class="row">
+            <div class="col-md-5">
+                {{ form_row(form.nome) }}
+
+                {{ form_row(form.documento) }}
+
+                {{ form_row(form.email) }}
+
+                {{ form_row(form.telefone) }}
+
+                {{ form_row(form.genero) }}
+
+                {{ form_row(form.observacao) }}
+            </div>
+            <div class="col-md-6 offset-md-1">
+                <h4>{{ 'label.customer_tickets'|trans }}</h4>
+                <table class="table table-bordered">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>{{ 'label.ticket'|trans }}</th>
+                            <th>{{ 'label.date'|trans }}</th>
+                            <th>{{ 'label.status'|trans }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in atendimentos %}
+                            <tr>
+                                <td>{{ a.senha }}</td>
+                                <td>{{ a.dataChegada|date('d/m/Y H:i') }}</td>
+                                <td>{{ a.status }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="d-flex">
+            <button type="submit" class="btn btn-primary">
+                <i class="fa fa-check"></i> 
+                {{ 'button.save'|trans }}
+            </button>
+
+            <a href="{{ path('novosga_customers_index') }}" class="btn btn-link text-decoration-none ms-2">
+                <i class="fa fa-chevron-left"></i>
+                {{ 'button.back'|trans }}
+            </a>
+
+            {% if entity.id and is_granted('ROLE_ADMIN') %}
+                <button type="submit" class="btn btn-danger ms-auto" form="customer-delete-form">
+                    <i class="fa fa-trash"></i>
+                    APAGAR paciente
+                </button>
+            {% endif %}
+        </div>
+
+    {{ form_end(form) }}
+
+    {% if entity.id and is_granted('ROLE_ADMIN') %}
+        <form id="customer-delete-form"
+              method="post"
+              action="{{ path('admin_records_customer_delete', { id: entity.id }) }}"
+              onsubmit="return confirm('APAGAR DEFINITIVAMENTE este paciente e TODOS os registros vinculados? Esta ação não pode ser desfeita.');">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete-customer-' ~ entity.id) }}">
+        </form>
+    {% endif %}
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('bundles/novosgacustomers/js/script.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const cpf = document.querySelector('input[name$="[documento]"]');
+            if (!cpf) {
+                return;
+            }
+
+            cpf.maxLength = 14;
+            cpf.inputMode = 'numeric';
+            cpf.placeholder = 'CPF (11 dígitos)';
+            cpf.addEventListener('input', function () {
+                cpf.value = cpf.value.replace(/\D/g, '').slice(0, 11);
+            });
+            cpf.form.addEventListener('submit', function (event) {
+                cpf.value = cpf.value.replace(/\D/g, '');
+                if (cpf.value.length !== 11) {
+                    event.preventDefault();
+                    alert('O CPF deve conter exatamente 11 dígitos.');
+                    cpf.focus();
+                }
+            });
+        });
+    </script>
+{% endblock %}

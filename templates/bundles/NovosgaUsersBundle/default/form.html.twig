@@ -1,0 +1,305 @@
+{% extends "@NovosgaUsers/base.html.twig" %}
+
+{% trans_default_domain 'NovosgaUsersBundle' %}
+
+{% block body %}
+<div id="users-form">
+    <div class="d-flex">
+        <div>
+            <h1>
+                <i class="fa fa-users" aria-hidden="true"></i> {{ 'title'|trans }}
+            </h1>
+            <p>{{ 'subtitle'|trans }}</p>
+        </div>
+    </div>
+
+    {{ form_start(form) }}
+
+        {% include 'flashMessages.html.twig' %}
+
+        <div class="row">
+            <div class="col-md-5">
+                <fieldset>
+                    <legend>{{ 'section.general.title'|trans }}</legend>
+
+                    <p class="text-secondary">{{ 'section.general.subtitle'|trans }}</p>
+
+                    <div class="row">
+                        <div class="col-sm-4">
+                            {{ form_row(form.login) }}
+                        </div>
+                        {% if entity.id %}
+                            <div class="col-sm-8">
+                                <label>&nbsp;</label>
+                                {{ form_row(form.ativo) }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-sm-4">
+                            {{ form_row(form.nome) }}
+                        </div>
+                        <div class="col-sm-8">
+                            {{ form_row(form.sobrenome) }}
+                        </div>
+                    </div>
+
+                    {{ form_row(form.email) }}
+
+                    {% if entity.id or form.admin is defined %}
+                        <div class="row">
+                            {% if form.admin is defined %}
+                                <div class="col-6">
+                                    {{ form_row(form.admin) }}
+                                </div>
+                            {% endif %}
+                            {% if entity.id %}
+                                <div class="col-6 text-end {% if not form.admin is defined %}offset-6{% endif %}">
+                                    <button type="button" class="btn btn-secondary" @click="showSenhaModal">
+                                        <i class="fa fa-lock"></i>
+                                        {{ 'button.change_password'|trans }}
+                                    </button>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                    {% if not entity.id %}
+                        {{ form_row(form.senha.first) }}
+                        {{ form_row(form.senha.second) }}
+                    {% endif %}
+                </fieldset>
+            </div>
+            <div class="col-6 ms-auto" id="lotacoes">
+                <fieldset>
+                    <legend>{{ 'section.lotation.title'|trans }}</legend>
+
+                    <p class="text-secondary">{{ 'section.lotation.subtitle'|trans }}</p>
+                    
+                    <table class="table">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>{{ 'label.unity'|trans }}</th>
+                                <th>{{ 'label.role'|trans }}</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody v-cloak>
+                            <tr v-for="lotacao in lotacoes">
+                                <td>
+                                    {% verbatim %}
+                                        {{ lotacao.unidade.nome }}
+                                    {% endverbatim %}
+                                    <input type="hidden" name="novasUnidades[]" :value="lotacao.unidade.id" v-if="lotacao.novo">
+                                </td>
+                                <td>
+                                    {% verbatim %}
+                                        {{ lotacao.perfil.nome }}
+                                    {% endverbatim %}
+                                    <input type="hidden" name="novosPerfis[]" :value="lotacao.perfil.id" v-if="lotacao.novo">
+                                </td>
+                                <td class="text-end text-nowrap">
+                                    <button type="button" title="{{ 'button.view_permissions'|trans }}" class="btn btn-secondary" v-on:click="viewPerfil(lotacao.perfil.id)">
+                                        <i class="fa fa-eye"></i>
+                                    </button>
+
+                                    <button type="button" title="{{ 'button.remove'|trans }}" class="btn btn-danger" v-on:click="remove(lotacao)">
+                                        <i class="fa fa-remove"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="2">
+                                </td>
+                                <td class="text-end">
+                                    <button type="button" class="btn btn-secondary" @click="showLotacaoModal">
+                                        <i class="fa fa-plus"></i>&nbsp;
+                                        {{ 'button.add'|trans }}
+                                    </button>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    
+                    {{ form_row(form.lotacoesRemovidas, { attr: { 'v-model': 'idsLotacoesRemovidas' } }) }}
+                </fieldset>
+            </div>
+        </div>
+
+        <div class="d-flex">
+            <button type="submit" class="btn btn-primary">
+                <i class="fa fa-check"></i> 
+                {{ 'button.save'|trans }}
+            </button>
+            <a href="{{ path('novosga_users_index') }}" class="btn btn-link text-decoration-none ms-2">
+                <i class="fa fa-chevron-left"></i>
+                {{ 'button.back'|trans }}
+            </a>
+            {% if entity.id and is_granted('ROLE_ADMIN') %}
+                <button type="submit" class="btn btn-danger ms-auto" form="user-delete-form">
+                    <i class="fa fa-trash"></i>
+                    APAGAR usuário
+                </button>
+            {% endif %}
+        </div>
+    {{ form_end(form) }}
+
+    {% if entity.id and is_granted('ROLE_ADMIN') %}
+        <form id="user-delete-form"
+              method="post"
+              action="{{ path('admin_records_user_delete', { id: entity.id }) }}"
+              onsubmit="return confirm('APAGAR DEFINITIVAMENTE este usuário e TODOS os registros vinculados? Esta ação não pode ser desfeita.');">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete-user-' ~ entity.id) }}">
+        </form>
+    {% endif %}
+
+    {# lotação #}
+    <div ref="lotacaoModal" id="dialog-lotacao" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form id="lotacao-form" @submit.prevent="handleLotacaoSubmit">
+                    <div class="modal-header">
+                        <h5 class="modal-title">{{ 'label.lotation'|trans}}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- dynamic content loaded by ajax -->
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            {{ 'button.close'|trans }}
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            {{ 'button.add'|trans }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {# permissoes #}
+    <div ref="perfilModal" id="dialog-perfil" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">{{ 'label.role'|trans }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" v-if="perfil">
+                    <table class="table table-bordered">
+                        <tr>
+                            <th>
+                                {{ 'label.name'|trans }}
+                            </th>
+                            <td>
+                                {% verbatim %}
+                                    {{perfil.nome}}
+                                {% endverbatim %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>
+                                {{ 'label.description'|trans }}
+                            </th>
+                            <td>
+                                {% verbatim %}
+                                    {{perfil.descricao}}
+                                {% endverbatim %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>
+                                {{ 'label.permissions'|trans }}
+                            </th>
+                            <td>
+                                {% verbatim %}
+                                    <ul>
+                                        <li v-for="modulo in perfil.modulos">
+                                            {{modulo}}
+                                        </li>
+                                    </ul>
+                                {% endverbatim %}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# dialog mudar senha apenas para usuarios ja cadastrados #}
+    {% if passwordForm %}
+        <div ref="senhaModal" id="dialog-senha" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    {{ form_start(passwordForm, { attr: { 'v-on:submit.prevent': 'alterarSenha' } }) }}
+                        <div class="modal-header">
+                            <h5 class="modal-title">{{ 'label.change_password'|trans }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                {{ form_label(passwordForm.senha) }}
+                                {{ form_widget(passwordForm.senha, { attr: { ':class': "{'is-invalid': errors.senha}" } }) }}
+                                <div v-text="errors.senha" :class="{'invalid-feedback': errors.senha}"></div>
+                            </div>
+                            <div class="mb-3">
+                                {{ form_label(passwordForm.confirmacaoSenha) }}
+                                {{ form_widget(passwordForm.confirmacaoSenha, { attr: { ':class': "{'is-invalid': errors.confirmacaoSenha}" } }) }}
+                                <div v-text="errors.confirmacaoSenha" :class="{'invalid-feedback': errors.confirmacaoSenha}"></div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary">
+                                {{ 'button.change'|trans }}
+                            </button>
+                        </div>
+                    {{ form_end(passwordForm) }}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        const unidades = [ {% for unidade in unidades %}{{ unidade.id }},{% endfor %} ];
+        const lotacoes = [ 
+                {%- for lotacao in entity.lotacoes -%}
+                    {
+                        id: {{ lotacao.id ? lotacao.id : 'null' }},
+                        unidade: {
+                            id: {{ lotacao.unidade.id }},
+                            nome: "{{ lotacao.unidade.nome }}"
+                        },
+                        perfil: {
+                            id: {{ lotacao.perfil.id }},
+                            nome: "{{ lotacao.perfil.nome }}"
+                        }
+                    },
+                {%- endfor -%} 
+            ];
+        const lotacoesRemovidas = [
+                {%- for lotacao in lotacoesRemovidas -%}
+                    {
+                        id: {{ lotacao.id }},
+                        unidade: {
+                            id: {{ lotacao.unidade.id }},
+                            nome: "{{ lotacao.unidade.nome }}"
+                        },
+                        perfil: {
+                            id: {{ lotacao.perfil.id }},
+                            nome: "{{ lotacao.perfil.nome }}"
+                        }
+                    },
+                {%- endfor -%} 
+            ];
+    </script>
+    <script src="{{ asset('bundles/novosgausers/js/script.js') }}"></script>
+{% endblock %}
