@@ -167,6 +167,67 @@ class FilasControllerTest extends WebTestCase
         $this->assertSame($senha2Normal->getId(), $result[2]['id']);
     }
 
+    public function testDeferredAttendanceStaysAfterAnchorThenBecomesNext(): void
+    {
+        $client = static::getClient();
+        $container = static::getContainer();
+        $accessToken = TestHelper::generateJwtToken($container);
+        $usuario = TestHelper::getUser($this->em);
+        $servico = TestHelper::createServico($this->em);
+        $unidade = TestHelper::createUnidade($this->em);
+        $this->createLinks($servico, $unidade, $usuario);
+
+        $adiado = $this->generateAtendimento(
+            self::TEST_SIGLA,
+            1,
+            $unidade,
+            $servico,
+            $this->prioridadeNormal,
+            new DateTimeImmutable('2024-12-17 08:00:00'),
+            $usuario,
+        );
+        $ancora = $this->generateAtendimento(
+            self::TEST_SIGLA,
+            2,
+            $unidade,
+            $servico,
+            $this->prioridadeNormal,
+            new DateTimeImmutable('2024-12-17 09:00:00'),
+            $usuario,
+        );
+        $ultimo = $this->generateAtendimento(
+            self::TEST_SIGLA,
+            3,
+            $unidade,
+            $servico,
+            $this->prioridadeNormal,
+            new DateTimeImmutable('2024-12-17 10:00:00'),
+            $usuario,
+        );
+        $adiado->setRetornoApos($ancora);
+        $this->em->flush();
+
+        $url = sprintf('/api/filas/%s', $unidade->getId());
+        $server = ['HTTP_AUTHORIZATION' => sprintf('Bearer %s', $accessToken)];
+        $client->request('GET', $url, server: $server);
+        $result = json_decode($client->getResponse()->getContent(), true);
+
+        self::assertSame(
+            [$ancora->getId(), $adiado->getId(), $ultimo->getId()],
+            array_column($result, 'id'),
+        );
+
+        $ancora->setStatus(AtendimentoService::CHAMADO_PELA_MESA);
+        $this->em->flush();
+        $client->request('GET', $url, server: $server);
+        $result = json_decode($client->getResponse()->getContent(), true);
+
+        self::assertSame(
+            [$adiado->getId(), $ultimo->getId()],
+            array_column($result, 'id'),
+        );
+    }
+
     private function generateAtendimento(
         string $sigla,
         int $numero,

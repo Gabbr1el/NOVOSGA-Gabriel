@@ -84,8 +84,8 @@ abstract class RelationalStorage extends DoctrineStorage
         try {
             $this->em->lock($atendimento, LockMode::PESSIMISTIC_WRITE);
             $this->em->persist($atendimento);
-            $this->em->getConnection()->commit();
             $this->em->flush();
+            $this->em->getConnection()->commit();
         } catch (Exception $e) {
             $this->em->getConnection()->rollback();
             throw $e;
@@ -110,8 +110,8 @@ abstract class RelationalStorage extends DoctrineStorage
             }
 
             $this->em->persist($atendimento);
-            $this->em->commit();
             $this->em->flush();
+            $this->em->commit();
         } catch (Exception $e) {
             try {
                 $this->em->rollback();

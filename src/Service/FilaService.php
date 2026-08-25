@@ -91,11 +91,9 @@ class FilaService implements FilaServiceInterface
             ->applyOrders($builder, $unidade, $usuario)
             ->getQuery();
 
-        if ($maxResults > 0) {
-            $query->setMaxResults($maxResults);
-        }
+        $fila = $this->applyDeferredOrder($query->getResult());
 
-        return $query->getResult();
+        return $maxResults > 0 ? array_slice($fila, 0, $maxResults) : $fila;
     }
 
     /** {@inheritDoc} */
@@ -115,7 +113,7 @@ class FilaService implements FilaServiceInterface
             ->getQuery()
             ->getResult();
 
-        return $rs;
+        return $this->applyDeferredOrder($rs);
     }
 
     /** {@inheritDoc} */
@@ -133,7 +131,7 @@ class FilaService implements FilaServiceInterface
             ->getQuery()
             ->getResult();
 
-        return $rs;
+        return $this->applyDeferredOrder($rs);
     }
 
     private function builder(): QueryBuilder
@@ -172,5 +170,51 @@ class FilaService implements FilaServiceInterface
             ->dispatch(new QueueOrderingEvent($unidade, $usuario, $builder));
 
         return $builder;
+    }
+
+    /**
+     * @param Atendimento[] $fila
+     * @return Atendimento[]
+     */
+    private function applyDeferredOrder(array $fila): array
+    {
+        $deferred = [];
+        $ordered = [];
+
+        foreach ($fila as $atendimento) {
+            if ($atendimento->getRetornoApos() === null) {
+                $ordered[] = $atendimento;
+            } else {
+                $deferred[] = $atendimento;
+            }
+        }
+
+        $withoutAnchor = [];
+        foreach ($deferred as $atendimento) {
+            $anchorId = $atendimento->getRetornoApos()?->getId();
+            $anchorIndex = null;
+
+            foreach ($ordered as $index => $candidate) {
+                if ($candidate->getId() === $anchorId) {
+                    $anchorIndex = $index;
+                    break;
+                }
+            }
+
+            if ($anchorIndex === null) {
+                $withoutAnchor[] = $atendimento;
+                continue;
+            }
+
+            while (
+                isset($ordered[$anchorIndex + 1])
+                && $ordered[$anchorIndex + 1]->getRetornoApos()?->getId() === $anchorId
+            ) {
+                ++$anchorIndex;
+            }
+            array_splice($ordered, $anchorIndex + 1, 0, [$atendimento]);
+        }
+
+        return [...$withoutAnchor, ...$ordered];
     }
 }

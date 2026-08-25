@@ -163,6 +163,59 @@ class AtendimentoServiceTest extends TestCase
         $this->service->chamarSenha($atendimento, $usuario);
     }
 
+    public function testAdiarAtendimentoReturnsTicketAfterCurrentNext(): void
+    {
+        $usuario = (new Usuario())->setId(10);
+        $atual = $this->buildAtendimento()
+            ->setId(20)
+            ->setUsuario($usuario)
+            ->setUsuarioTriagem($usuario)
+            ->setStatus(AtendimentoService::ATENDIMENTO_INICIADO)
+            ->setDataChegada($this->clock->now()->modify('-1 hour'))
+            ->setDataInicio($this->clock->now()->modify('-10 minutes'));
+        $proximo = $this->buildAtendimento()->setId(21);
+        $servicoUnidade = new ServicoUnidade();
+        $servicos = [];
+
+        $this->filaService
+            ->expects($this->once())
+            ->method('getFilaAtendimento')
+            ->with($atual->getUnidade(), $usuario, $servicos, FilaService::TIPO_TODOS, 1)
+            ->willReturn([$proximo]);
+        $this->servicoUnidadeRepository
+            ->expects($this->once())
+            ->method('get')
+            ->with($atual->getUnidade(), $atual->getServico())
+            ->willReturn($servicoUnidade);
+        $this->storage
+            ->expects($this->once())
+            ->method('encerrar')
+            ->with($atual, [], $this->isInstanceOf(Atendimento::class))
+            ->willReturnCallback(static function ($ignored, $codificados, Atendimento $novo): void {
+                $novo->setId(22);
+            });
+        $this->mercureService
+            ->expects($this->exactly(2))
+            ->method('notificaAtendimento');
+
+        $novo = $this->service->adiarAtendimento(
+            $atual,
+            $usuario,
+            $servicos,
+            FilaService::TIPO_TODOS,
+        );
+
+        self::assertSame(AtendimentoService::ATENDIMENTO_ENCERRADO, $atual->getStatus());
+        self::assertSame(AtendimentoService::PENDENTE, $atual->getResolucao());
+        self::assertInstanceOf(Atendimento::class, $novo);
+        self::assertSame(AtendimentoService::SENHA_EMITIDA, $novo->getStatus());
+        self::assertSame($atual, $novo->getPai());
+        self::assertSame($proximo, $novo->getRetornoApos());
+        self::assertSame($atual->getCliente(), $novo->getCliente());
+        self::assertSame($atual->getUsuarioTriagem(), $novo->getUsuarioTriagem());
+        self::assertNull($novo->getUsuario());
+    }
+
     public function testDistribuiSenhaWithInvalidUnity(): void
     {
         $unidade = 123;

@@ -37,6 +37,7 @@ use Novosga\Entity\LocalInterface;
 use Novosga\Entity\PrioridadeInterface;
 use Novosga\Entity\ServicoInterface;
 use Novosga\Entity\ServicoUnidadeInterface;
+use Novosga\Entity\ServicoUsuarioInterface;
 use Novosga\Entity\UnidadeInterface;
 use Novosga\Entity\UsuarioInterface;
 use Novosga\Event\PreTicketCallEvent;
@@ -562,6 +563,62 @@ class AtendimentoService implements AtendimentoServiceInterface
         ));
 
         $this->mercureService->notificaAtendimento($atendimento, $usuario);
+    }
+
+    /**
+     * @param ServicoUsuarioInterface[] $servicos
+     */
+    public function adiarAtendimento(
+        AtendimentoInterface $atendimento,
+        UsuarioInterface $usuario,
+        array $servicos,
+        string $tipoFila,
+    ): AtendimentoInterface {
+        if (
+            $atendimento->getStatus() !== self::ATENDIMENTO_INICIADO
+            || $atendimento->getUsuario()?->getId() !== $usuario->getId()
+        ) {
+            throw new Exception('Somente o atendimento atual já iniciado pode ser adiado.');
+        }
+
+        $fila = $this->filaService->getFilaAtendimento(
+            $atendimento->getUnidade(),
+            $usuario,
+            $servicos,
+            $tipoFila,
+            1,
+        );
+        $proximo = $fila[0] ?? null;
+        if (!$proximo instanceof Atendimento) {
+            throw new Exception('Não há outro paciente na fila para atender primeiro.');
+        }
+
+        $now = $this->clock->now();
+        $atendimento
+            ->setDataFim($now)
+            ->setStatus(self::ATENDIMENTO_ENCERRADO)
+            ->setResolucao(self::PENDENTE)
+            ->setTempoPermanencia($now->diff($atendimento->getDataChegada()))
+            ->setTempoAtendimento($now->diff($atendimento->getDataInicio()));
+
+        /** @var Atendimento $novo */
+        $novo = $this->copyToRedirect($atendimento, $atendimento->getServico());
+        $novo
+            ->setUsuarioTriagem($atendimento->getUsuarioTriagem())
+            ->setRetornoApos($proximo);
+
+        $this->storage->encerrar($atendimento, [], $novo);
+        $this->logger->info('Attendance deferred after next queued ticket', [
+            'attendance' => $atendimento->getId(),
+            'deferred' => $novo->getId(),
+            'anchor' => $proximo->getId(),
+            'user' => $usuario->getId(),
+        ]);
+
+        $this->mercureService->notificaAtendimento($atendimento, $usuario);
+        $this->mercureService->notificaAtendimento($novo);
+
+        return $novo;
     }
 
     /** {@inheritDoc} */

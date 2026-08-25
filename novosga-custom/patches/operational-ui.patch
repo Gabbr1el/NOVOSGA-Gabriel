@@ -1,6 +1,62 @@
+--- a/vendor/novosga/attendance-bundle/src/Resources/public/js/script.js
++++ b/vendor/novosga/attendance-bundle/src/Resources/public/js/script.js
+@@ -43,6 +43,35 @@
+             localModal: null,
+         },
+         methods: {
++            adiar() {
++                swal({
++                    title: alertTitle,
++                    text: alertAdiar,
++                    type: "warning",
++                    buttons: [
++                        labelNao,
++                        labelSim
++                    ],
++                })
++                .then((ok) => {
++                    if (!ok) {
++                        return;
++                    }
++                    this.busy = true;
++                    App.ajax({
++                        url: App.url('/novosga.attendance/adiar'),
++                        type: 'post',
++                        success: () => {
++                            this.atendimento = null;
++                            this.update();
++                        },
++                        complete: () => {
++                            this.busy = false;
++                        }
++                    });
++                });
++            },
++
+             update() {
+                 App.ajax({
+                     url: App.url('/novosga.attendance/ajax_update'),
 --- a/vendor/novosga/attendance-bundle/src/Resources/views/default/index.html.twig
 +++ b/vendor/novosga/attendance-bundle/src/Resources/views/default/index.html.twig
-@@ -419,7 +419,8 @@
+@@ -244,6 +244,17 @@
+                     <hr>
+
+                     <div class="row controls">
++                        <div class="col-md-4 d-grid" v-if="atendimento && atendimento.status==='iniciado'">
++                            <button type="button"
++                                    class="btn btn-warning btn-block"
++                                    title="Adiar uma posição"
++                                    v-bind:disabled="busy"
++                                    v-on:click="adiar">
++                                <i class="fa fa-pause"></i>
++                                <span>Adiar uma posição</span>
++                            </button>
++                        </div>
++
+                         <div class="col-md-4 d-grid" v-if="!atendimento">
+                             <button type="button"
+                                     class="btn btn-primary btn-block"
+@@ -419,7 +430,8 @@
                                  <div class="col-sm-6">
                                      <div class="mb-3">
                                          <label class="control-label">{{ 'label.place.number'|trans }}</label>
@@ -10,7 +66,7 @@
                                      </div>
                                  </div>
                                  <div class="col-sm-6">
-@@ -435,11 +436,12 @@
+@@ -435,11 +447,12 @@
                                  <div class="col-sm-12">
                                      <div class="mb-3">
                                          <label class="control-label">{{ 'label.place'|trans }}</label>
@@ -24,3 +80,11 @@
                                      </div>
                                  </div>
                              </div>
+@@ -737,6 +750,7 @@
+         const alertTitle = "{{ 'alert.title'|trans }}";
+         const alertRedirecionar = "{{ 'alert.ticket_error.text'|trans }}";
+         const alertNaoCompareceu = "{{ 'alert.no_show.text'|trans }}";
++        const alertAdiar = "O paciente atual será devolvido à fila logo após o próximo paciente. Deseja continuar?";
+         const alertEncerrar = "{{ 'alert.finish.text'|trans }}";
+         const modalErrorTitle = "{{ 'modal.error'|trans }}"
+         const modalErrorText = "{{ 'modal.error.text'|trans }}";

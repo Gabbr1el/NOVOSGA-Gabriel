@@ -40,6 +40,10 @@ class Atendimento extends AbstractAtendimento
     #[ORM\JoinColumn(name: 'atendimento_id')]
     protected ?AtendimentoInterface $pai = null;
 
+    #[ORM\ManyToOne(targetEntity: Atendimento::class)]
+    #[ORM\JoinColumn(name: 'retorno_apos_id', onDelete: 'SET NULL')]
+    private ?Atendimento $retornoApos = null;
+
     /** @var Collection<int,AtendimentoCodificadoInterface> */
     #[ORM\OneToMany(targetEntity: AtendimentoCodificado::class, mappedBy: 'atendimento')]
     private Collection $codificados;
@@ -70,6 +74,18 @@ class Atendimento extends AbstractAtendimento
     public function setPai(?AtendimentoInterface $pai): static
     {
         $this->pai = $pai;
+
+        return $this;
+    }
+
+    public function getRetornoApos(): ?Atendimento
+    {
+        return $this->retornoApos;
+    }
+
+    public function setRetornoApos(?Atendimento $retornoApos): static
+    {
+        $this->retornoApos = $retornoApos;
 
         return $this;
     }
