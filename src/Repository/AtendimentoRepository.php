@@ -167,7 +167,7 @@ class AtendimentoRepository extends ServiceEntityRepository implements Atendimen
             $qb
                 ->setParameter('sigla', strtoupper($ticket[1]))
                 ->setParameter('numero', (int) $ticket[2]);
-        } elseif ($digits !== '' && $digits === $term) {
+        } elseif ($digits !== '' && $digits === $term && (int) $digits <= 2147483647) {
             $conditions[] = 'a.senha.numero = :numero';
             $qb->setParameter('numero', (int) $digits);
         }
