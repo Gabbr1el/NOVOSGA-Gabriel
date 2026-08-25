@@ -55,4 +55,15 @@ class ClienteRepository extends ServiceEntityRepository implements ClienteReposi
             ->getQuery()
             ->getResult();
     }
+
+    public function findOneByCpf(string $cpf): ?Cliente
+    {
+        $digits = preg_replace('/\D+/', '', $cpf);
+        $formatted = strlen($digits) === 11
+            ? preg_replace('/(\d{3})(\d{3})(\d{3})(\d{2})/', '$1.$2.$3-$4', $digits)
+            : $digits;
+
+        return $this->findOneBy(['documento' => $digits])
+            ?? $this->findOneBy(['documento' => $formatted]);
+    }
 }

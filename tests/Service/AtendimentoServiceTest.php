@@ -644,7 +644,7 @@ class AtendimentoServiceTest extends TestCase
         $servico = new Servico();
         $prioridade = new Prioridade();
         $servicoUnidade = new ServicoUnidade();
-        $cliente = (new Cliente())->setDocumento('1234567890');
+        $cliente = (new Cliente())->setDocumento('12345678901');
 
         $this
             ->servicoUnidadeRepository
@@ -656,8 +656,8 @@ class AtendimentoServiceTest extends TestCase
         $this
             ->clienteRepository
             ->expects($this->once())
-            ->method('findOneBy')
-            ->with(['documento' => $cliente->getDocumento()])
+            ->method('findOneByCpf')
+            ->with($cliente->getDocumento())
             ->willReturn($cliente);
 
         $this
@@ -680,6 +680,32 @@ class AtendimentoServiceTest extends TestCase
 
         $this->assertNotNull($atendimento->getId());
         $this->assertSame($cliente, $atendimento->getCliente());
+    }
+
+    public function testDistribuiSenhaRejectsInvalidCpf(): void
+    {
+        $unidade = new Unidade();
+        $usuario = (new Usuario())->setAdmin(true);
+        $servico = new Servico();
+        $prioridade = new Prioridade();
+        $cliente = (new Cliente())->setDocumento('1234567890');
+
+        $this->servicoUnidadeRepository
+            ->expects($this->once())
+            ->method('get')
+            ->with($unidade, $servico)
+            ->willReturn(new ServicoUnidade());
+        $this->clienteRepository
+            ->expects($this->once())
+            ->method('findOneByCpf')
+            ->with('1234567890')
+            ->willReturn(null);
+        $this->storage->expects($this->never())->method('distribui');
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('O CPF deve conter exatamente 11 dígitos.');
+
+        $this->service->distribuiSenha($unidade, $usuario, $servico, $prioridade, $cliente);
     }
 
     public function testDistribuiSenhaWithAppointment(): void
@@ -787,7 +813,7 @@ class AtendimentoServiceTest extends TestCase
         $atendimento->setCliente(
             (new Cliente())
                 ->setNome('Customer 1')
-                ->setDocumento('1234567890')
+                ->setDocumento('12345678901')
         );
         $atendimento->setSenha(
             (new Senha())

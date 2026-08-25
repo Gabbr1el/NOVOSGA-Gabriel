@@ -20,6 +20,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Novosga\Entity\ClienteInterface;
 use Novosga\Entity\EnderecoInterface;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Cliente
@@ -41,6 +42,10 @@ class Cliente implements ClienteInterface
     private ?string $nome = null;
 
     #[ORM\Column(length: 30, unique: true)]
+    #[Assert\Regex(
+        pattern: '/^\d{11}$/',
+        message: 'O CPF deve conter exatamente 11 dígitos.'
+    )]
     private ?string $documento = null;
 
     #[ORM\Column(length: 80, nullable: true)]
@@ -97,7 +102,7 @@ class Cliente implements ClienteInterface
 
     public function setDocumento(?string $documento): static
     {
-        $this->documento = $documento;
+        $this->documento = $documento === null ? null : preg_replace('/\D+/', '', $documento);
 
         return $this;
     }
