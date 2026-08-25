@@ -302,45 +302,7 @@ class AtendimentoService implements AtendimentoServiceInterface
     /** {@inheritDoc} */
     public function buscaAtendimentos(UnidadeInterface $unidade, string $senha): array
     {
-        $i = 0;
-        $sigla = '';
-        do {
-            $char = substr($senha, $i, 1);
-            $isAlpha = ctype_alpha($char);
-            if ($isAlpha) {
-                $sigla .= strtoupper($char);
-            }
-            $i++;
-        } while ($i < strlen($senha) && $isAlpha);
-
-        $numero = (int) substr($senha, $i - 1);
-
-        $qb = $this
-            ->atendimentoRepository
-            ->createQueryBuilder('e')
-            ->select([
-                'e', 's', 'ut', 'u'
-            ])
-            ->join('e.servico', 's')
-            ->join('e.usuarioTriagem', 'ut')
-            ->leftJoin('e.usuario', 'u')
-            ->where(':numero = 0 OR e.senha.numero = :numero')
-            ->andWhere('e.unidade = :unidade')
-            ->orderBy('e.id', 'ASC')
-            ->setParameter('numero', $numero)
-            ->setParameter('unidade', $unidade->getId());
-
-        if (!empty($sigla)) {
-            $qb
-                ->andWhere('e.senha.sigla = :sigla')
-                ->setParameter('sigla', $sigla);
-        }
-
-        $rs = $qb
-            ->getQuery()
-            ->getResult();
-
-        return $rs;
+        return $this->atendimentoRepository->searchByTerm($unidade, $senha);
     }
 
     /**

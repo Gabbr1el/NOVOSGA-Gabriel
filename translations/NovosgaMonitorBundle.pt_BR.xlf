@@ -6,6 +6,10 @@
                 <source>label.customer.id</source>
                 <target>CPF</target>
             </trans-unit>
+            <trans-unit id="placeholder.search">
+                <source>placeholder.search</source>
+                <target>Senha ou dados do paciente</target>
+            </trans-unit>
         </body>
     </file>
 </xliff>

@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use App\Entity\Atendimento;
@@ -94,5 +95,95 @@ class AtendimentoRepository extends ServiceEntityRepository implements Atendimen
             ->getOneOrNullResult();
 
         return $atendimento;
+    }
+
+    /** @return Atendimento[] */
+    public function searchByTerm(UnidadeInterface $unidade, string $term): array
+    {
+        $term = trim(str_replace(['%', '_'], '', $term));
+        if ($term === '') {
+            return [];
+        }
+
+        $qb = $this->createQueryBuilder('a')
+            ->addSelect('s', 'ut', 'u', 'c')
+            ->join('a.servico', 's')
+            ->join('a.usuarioTriagem', 'ut')
+            ->leftJoin('a.usuario', 'u')
+            ->leftJoin('a.cliente', 'c')
+            ->andWhere('a.unidade = :unidade')
+            ->setParameter('unidade', $unidade)
+            ->orderBy('a.id', 'ASC')
+            ->setMaxResults(100);
+
+        $fields = [
+            'c.nome',
+            'c.documento',
+            'c.email',
+            'c.telefone',
+            'c.genero',
+            'c.observacao',
+            'c.endereco.pais',
+            'c.endereco.estado',
+            'c.endereco.cidade',
+            'c.endereco.cep',
+            'c.endereco.logradouro',
+            'c.endereco.numero',
+            'c.endereco.complemento',
+        ];
+        $conditions = array_map(
+            static fn (string $field): string => sprintf('LOWER(%s) LIKE LOWER(:term)', $field),
+            $fields,
+        );
+        $qb->setParameter('term', '%' . $term . '%');
+
+        $digits = preg_replace('/\D+/', '', $term);
+        $formatted = match (strlen($digits)) {
+            8 => substr($digits, 0, 5) . '-' . substr($digits, 5),
+            10 => sprintf('(%s) %s-%s', substr($digits, 0, 2), substr($digits, 2, 4), substr($digits, 6)),
+            11 => [
+                sprintf(
+                    '%s.%s.%s-%s',
+                    substr($digits, 0, 3),
+                    substr($digits, 3, 3),
+                    substr($digits, 6, 3),
+                    substr($digits, 9),
+                ),
+                sprintf('(%s) %s-%s', substr($digits, 0, 2), substr($digits, 2, 5), substr($digits, 7)),
+            ],
+            default => [],
+        };
+        foreach ((array) $formatted as $index => $value) {
+            $parameter = 'formatted' . $index;
+            $conditions[] = sprintf(
+                '(c.documento LIKE :%1$s OR c.telefone LIKE :%1$s OR c.endereco.cep LIKE :%1$s)',
+                $parameter,
+            );
+            $qb->setParameter($parameter, '%' . $value . '%');
+        }
+
+        if (preg_match('/^([[:alpha:]]+)\s*[- ]?\s*0*(\d+)$/u', $term, $ticket)) {
+            $conditions[] = '(UPPER(a.senha.sigla) = :sigla AND a.senha.numero = :numero)';
+            $qb
+                ->setParameter('sigla', strtoupper($ticket[1]))
+                ->setParameter('numero', (int) $ticket[2]);
+        } elseif ($digits !== '' && $digits === $term) {
+            $conditions[] = 'a.senha.numero = :numero';
+            $qb->setParameter('numero', (int) $digits);
+        }
+
+        $date = DateTimeImmutable::createFromFormat('!d/m/Y', $term)
+            ?: DateTimeImmutable::createFromFormat('!Y-m-d', $term);
+        if ($date instanceof DateTimeImmutable) {
+            $conditions[] = '(c.dataNascimento >= :dateStart AND c.dataNascimento < :dateEnd)';
+            $qb
+                ->setParameter('dateStart', $date)
+                ->setParameter('dateEnd', $date->modify('+1 day'));
+        }
+
+        return $qb
+            ->andWhere($qb->expr()->orX(...$conditions))
+            ->getQuery()
+            ->getResult();
     }
 }
