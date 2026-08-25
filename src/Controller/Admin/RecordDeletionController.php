@@ -37,7 +37,7 @@ final class RecordDeletionController extends AbstractController
             return $this->redirectToRoute('novosga_users_edit', ['id' => $usuario->getId()]);
         }
 
-        $this->deletionService->deleteUser((int) $usuario->getId(), $usuario->getLogin());
+        $this->deletionService->deleteUser((int) $usuario->getId());
         $this->addFlash('success', 'Usuário e todos os registros vinculados foram apagados definitivamente.');
 
         return $this->redirectToRoute('novosga_users_index');
@@ -46,7 +46,11 @@ final class RecordDeletionController extends AbstractController
     #[Route('/customers/{id}/delete', name: 'customer_delete', methods: ['POST'])]
     public function deleteCustomer(Request $request, Cliente $cliente): Response
     {
-        if (!$this->isCsrfTokenValid('delete-customer-' . $cliente->getId(), (string) $request->request->get('_token'))) {
+        $validToken = $this->isCsrfTokenValid(
+            'delete-customer-' . $cliente->getId(),
+            (string) $request->request->get('_token'),
+        );
+        if (!$validToken) {
             throw $this->createAccessDeniedException('Token de confirmação inválido.');
         }
 

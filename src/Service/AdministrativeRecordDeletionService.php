@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 
 final class AdministrativeRecordDeletionService
@@ -13,17 +14,37 @@ final class AdministrativeRecordDeletionService
     ) {
     }
 
-    public function deleteUser(int $id, string $login): void
+    public function deleteUser(int $id): void
     {
-        $this->connection->transactional(function (Connection $connection) use ($id, $login): void {
-            $this->deleteAttendances($connection, 'atendimentos', 'atendimentos_codificados', 'atendimentos_metadata', $id, true);
-            $this->deleteAttendances($connection, 'historico_atendimentos', 'historico_atendimentos_codificados', 'historico_atendimentos_metadata', $id, true);
+        $this->connection->transactional(function (Connection $connection) use ($id): void {
+            $login = $connection->fetchOne('SELECT login FROM usuarios WHERE id = ? FOR UPDATE', [$id]);
+            if (!is_string($login)) {
+                return;
+            }
+
+            $this->deleteAttendances(
+                $connection,
+                'atendimentos',
+                'atendimentos_codificados',
+                'atendimentos_metadata',
+                $id,
+                true,
+            );
+            $this->deleteAttendances(
+                $connection,
+                'historico_atendimentos',
+                'historico_atendimentos_codificados',
+                'historico_atendimentos_metadata',
+                $id,
+                true,
+            );
 
             $connection->executeStatement('DELETE FROM servicos_usuarios WHERE usuario_id = ?', [$id]);
             $connection->executeStatement('DELETE FROM lotacoes WHERE usuario_id = ?', [$id]);
             $connection->executeStatement('DELETE FROM usuarios_metadata WHERE usuario_id = ?', [$id]);
             $connection->executeStatement(
-                'DELETE FROM oauth2_refresh_token WHERE access_token IN (SELECT identifier FROM oauth2_access_token WHERE user_identifier = ?)',
+                'DELETE FROM oauth2_refresh_token WHERE access_token IN '
+                . '(SELECT identifier FROM oauth2_access_token WHERE user_identifier = ?)',
                 [$login],
             );
             $connection->executeStatement('DELETE FROM oauth2_authorization_code WHERE user_identifier = ?', [$login]);
@@ -35,9 +56,31 @@ final class AdministrativeRecordDeletionService
     public function deleteCustomer(int $id): void
     {
         $this->connection->transactional(function (Connection $connection) use ($id): void {
-            $this->deleteAttendances($connection, 'atendimentos', 'atendimentos_codificados', 'atendimentos_metadata', $id, false);
-            $this->deleteAttendances($connection, 'historico_atendimentos', 'historico_atendimentos_codificados', 'historico_atendimentos_metadata', $id, false);
+            $document = $connection->fetchOne('SELECT documento FROM clientes WHERE id = ? FOR UPDATE', [$id]);
+            if (false === $document) {
+                return;
+            }
 
+            $this->deleteAttendances(
+                $connection,
+                'atendimentos',
+                'atendimentos_codificados',
+                'atendimentos_metadata',
+                $id,
+                false,
+            );
+            $this->deleteAttendances(
+                $connection,
+                'historico_atendimentos',
+                'historico_atendimentos_codificados',
+                'historico_atendimentos_metadata',
+                $id,
+                false,
+            );
+
+            if (is_string($document) && '' !== $document) {
+                $connection->executeStatement('DELETE FROM painel_senha WHERE documento_cliente = ?', [$document]);
+            }
             $connection->executeStatement('DELETE FROM agendamentos WHERE cliente_id = ?', [$id]);
             $connection->executeStatement('DELETE FROM clientes_metadata WHERE cliente_id = ?', [$id]);
             $connection->executeStatement('DELETE FROM clientes WHERE id = ?', [$id]);
@@ -54,33 +97,41 @@ final class AdministrativeRecordDeletionService
     ): void {
         $condition = $user ? '(usuario_id = ? OR usuario_tri_id = ?)' : 'cliente_id = ?';
         $parameters = $user ? [$id, $id] : [$id];
-        $subquery = "SELECT id FROM {$table} WHERE {$condition}";
+        $ids = $connection->fetchFirstColumn("SELECT id FROM {$table} WHERE {$condition}", $parameters);
 
-        $connection->executeStatement("DELETE FROM {$codedTable} WHERE atendimento_id IN ({$subquery})", $parameters);
-        $connection->executeStatement("DELETE FROM {$metadataTable} WHERE atendimento_id IN ({$subquery})", $parameters);
+        if ([] === $ids) {
+            return;
+        }
+
+        $arrayType = [ArrayParameterType::INTEGER];
         $connection->executeStatement(
-            "UPDATE {$table} target INNER JOIN {$table} doomed ON target.atendimento_id = doomed.id "
-            . "SET target.atendimento_id = NULL WHERE {$this->qualifiedCondition('doomed', $condition)}",
-            $parameters,
+            "DELETE FROM {$codedTable} WHERE atendimento_id IN (?)",
+            [$ids],
+            $arrayType,
+        );
+        $connection->executeStatement(
+            "DELETE FROM {$metadataTable} WHERE atendimento_id IN (?)",
+            [$ids],
+            $arrayType,
+        );
+        $connection->executeStatement(
+            "UPDATE {$table} SET atendimento_id = NULL WHERE atendimento_id IN (?)",
+            [$ids],
+            $arrayType,
         );
 
         if ($table === 'atendimentos') {
             $connection->executeStatement(
-                "UPDATE {$table} target INNER JOIN {$table} doomed ON target.retorno_apos_id = doomed.id "
-                . "SET target.retorno_apos_id = NULL WHERE {$this->qualifiedCondition('doomed', $condition)}",
-                $parameters,
+                "UPDATE {$table} SET retorno_apos_id = NULL WHERE retorno_apos_id IN (?)",
+                [$ids],
+                $arrayType,
             );
         }
 
-        $connection->executeStatement("DELETE FROM {$table} WHERE {$condition}", $parameters);
-    }
-
-    private function qualifiedCondition(string $alias, string $condition): string
-    {
-        return str_replace(
-            ['usuario_id', 'usuario_tri_id', 'cliente_id'],
-            ["{$alias}.usuario_id", "{$alias}.usuario_tri_id", "{$alias}.cliente_id"],
-            $condition,
+        $connection->executeStatement(
+            "DELETE FROM {$table} WHERE id IN (?)",
+            [$ids],
+            $arrayType,
         );
     }
 }

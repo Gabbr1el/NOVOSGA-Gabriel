@@ -18,6 +18,12 @@ final class AdministrativeRecordDeletionServiceTest extends TestCase
             ->willReturnCallback(static function (callable $callback) use ($connection): void {
                 $callback($connection);
             });
+        $connection->expects($this->once())
+            ->method('fetchOne')
+            ->willReturn('operador');
+        $connection->expects($this->exactly(2))
+            ->method('fetchFirstColumn')
+            ->willReturn([101]);
 
         $sql = [];
         $connection->expects($this->exactly(16))
@@ -27,10 +33,11 @@ final class AdministrativeRecordDeletionServiceTest extends TestCase
                 return 1;
             });
 
-        (new AdministrativeRecordDeletionService($connection))->deleteUser(7, 'operador');
+        (new AdministrativeRecordDeletionService($connection))->deleteUser(7);
 
         $joined = implode("\n", $sql);
-        foreach ([
+        foreach (
+            [
             'atendimentos_codificados',
             'atendimentos_metadata',
             'historico_atendimentos_codificados',
@@ -42,7 +49,8 @@ final class AdministrativeRecordDeletionServiceTest extends TestCase
             'oauth2_authorization_code',
             'oauth2_access_token',
             'DELETE FROM usuarios',
-        ] as $table) {
+            ] as $table
+        ) {
             self::assertStringContainsString($table, $joined);
         }
     }
@@ -55,9 +63,15 @@ final class AdministrativeRecordDeletionServiceTest extends TestCase
             ->willReturnCallback(static function (callable $callback) use ($connection): void {
                 $callback($connection);
             });
+        $connection->expects($this->once())
+            ->method('fetchOne')
+            ->willReturn('12345678900');
+        $connection->expects($this->exactly(2))
+            ->method('fetchFirstColumn')
+            ->willReturn([102]);
 
         $sql = [];
-        $connection->expects($this->exactly(12))
+        $connection->expects($this->exactly(13))
             ->method('executeStatement')
             ->willReturnCallback(static function (string $statement) use (&$sql): int {
                 $sql[] = $statement;
@@ -67,16 +81,20 @@ final class AdministrativeRecordDeletionServiceTest extends TestCase
         (new AdministrativeRecordDeletionService($connection))->deleteCustomer(9);
 
         $joined = implode("\n", $sql);
-        foreach ([
+        foreach (
+            [
             'atendimentos_codificados',
             'atendimentos_metadata',
             'historico_atendimentos_codificados',
             'historico_atendimentos_metadata',
+            'painel_senha',
             'agendamentos',
             'clientes_metadata',
             'DELETE FROM clientes',
-        ] as $table) {
+            ] as $table
+        ) {
             self::assertStringContainsString($table, $joined);
         }
+        self::assertStringNotContainsString('INNER JOIN', $joined);
     }
 }

@@ -88,27 +88,4 @@
 {% block javascripts %}
     {{ parent() }}
     <script src="{{ asset('bundles/novosgacustomers/js/script.js') }}"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const cpf = document.querySelector('input[name$="[documento]"]');
-            if (!cpf) {
-                return;
-            }
-
-            cpf.maxLength = 14;
-            cpf.inputMode = 'numeric';
-            cpf.placeholder = 'CPF (11 dígitos)';
-            cpf.addEventListener('input', function () {
-                cpf.value = cpf.value.replace(/\D/g, '').slice(0, 11);
-            });
-            cpf.form.addEventListener('submit', function (event) {
-                cpf.value = cpf.value.replace(/\D/g, '');
-                if (cpf.value.length !== 11) {
-                    event.preventDefault();
-                    alert('O CPF deve conter exatamente 11 dígitos.');
-                    cpf.focus();
-                }
-            });
-        });
-    </script>
 {% endblock %}
