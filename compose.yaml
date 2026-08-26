@@ -1,7 +1,10 @@
 services:
 
   novosga:
-    build: .
+    build:
+      context: .
+      args:
+        GIT_COMMIT: ${GIT_COMMIT:-local}
     image: novosga/novosga:2.2-standalone
     restart: unless-stopped
 
@@ -44,7 +47,7 @@ services:
       APP_LANGUAGE: 'pt_BR'
 
       MERCURE_URL: http://mercure:3000/.well-known/mercure
-      MERCURE_PUBLIC_URL: http://localhost:3000/.well-known/mercure
+      MERCURE_PUBLIC_URL: http://10.0.0.237:3000/.well-known/mercure
       MERCURE_JWT_SECRET: "eyJhbGciOiJIUzI1NiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlsiKiJdfX0.Carr3UqDSoWjUY4fCOrizjTZ4a2LQ6cx35cd6QdahZY"
 
 
@@ -81,7 +84,7 @@ services:
 
     environment:
       VUE_APP_API_BASE_URL: http://localhost:8080
-      VUE_APP_MERCURE_URL: http://localhost:3000/.well-known/mercure
+      VUE_APP_MERCURE_URL: http://10.0.0.237:3000/.well-known/mercure
 
     volumes:
       - ./panel-custom:/usr/share/nginx/html
@@ -99,7 +102,7 @@ services:
 
     environment:
       VUE_APP_API_BASE_URL: http://localhost:8080
-      VUE_APP_MERCURE_URL: http://localhost:3000/.well-known/mercure
+      VUE_APP_MERCURE_URL: http://10.0.0.237:3000/.well-known/mercure
 
     volumes:
       - "./panel-custom (Protocolo):/usr/share/nginx/html"
