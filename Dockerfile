@@ -14,6 +14,9 @@ RUN apk add --no-cache \
     php82-sodium \
     php82-xsl
 
+RUN mkdir -p /var/lib/novosga/sessions \
+    && chown -R 65534:65534 /var/lib/novosga
+
 ADD etc/php.ini /etc/php82/conf.d/custom.ini
 ADD etc/nginx.conf /etc/nginx/conf.d/default.conf
 

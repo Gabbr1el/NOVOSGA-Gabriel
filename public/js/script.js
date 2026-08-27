@@ -87,6 +87,11 @@ const App = {
                 method,
                 headers,
             });
+            const contentType = resp.headers.get('content-type') || '';
+            if (resp.redirected || contentType.includes('text/html')) {
+                window.location.assign(resp.redirected ? resp.url : App.baseUrl);
+                return;
+            }
             const json = await resp.json();
             if (json.success) {
                 if (arg.success && typeof(arg.success) === 'function') {

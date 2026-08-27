@@ -17,6 +17,7 @@ services:
       - "8080:8080"
 
     volumes:
+      - novosga_sessions:/var/lib/novosga/sessions
       - ./imagens:/var/www/html/public/images
       - ./novosga-custom/custom.css:/var/www/html/public/custom.css
       - ./NovosgaCustomersBundle.pt_BR.xlf:/var/www/html/vendor/novosga/customers-bundle/src/Resources/translations/NovosgaCustomersBundle.pt_BR.xlf
@@ -218,4 +219,5 @@ services:
 
 volumes:
   mysql_data:
+  novosga_sessions:
   portainer_data:
