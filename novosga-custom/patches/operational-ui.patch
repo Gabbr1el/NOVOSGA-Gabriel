@@ -159,3 +159,14 @@
 +        });
 +    </script>
  {% endblock %}
+--- a/vendor/novosga/monitor-bundle/src/Resources/views/default/index.html.twig
++++ b/vendor/novosga/monitor-bundle/src/Resources/views/default/index.html.twig
+@@ -70,7 +70,7 @@
+                                 class="list-inline-item">
+                                 <a 
+                                     href="#"
+-                                    v-on:click="view(atendimento)"
++                                    v-on:click.prevent="view(atendimento)"
+                                     v-bind:style="getItemFilaStyle(atendimento)"
+                                     v-bind:title="atendimento.prioridade.nome + ' (' + atendimento.tempoEspera + ')'">
+                                     {% verbatim %}
