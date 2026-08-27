@@ -9,7 +9,12 @@ const state = {
   painelIniciado: false,
   wakeLock: null,
   wakeLockRequest: null,
+  wakeLockRetryId: null,
+  wakeLockRetryAttempt: 0,
   mediaKeepAlive: null,
+  tokenPromise: null,
+  requestGeneration: 0,
+  ttsTimeoutId: null,
 };
 
 const audioAlerta = new Audio();
@@ -43,6 +48,12 @@ async function manterTelaAtiva() {
       await state.wakeLockRequest;
 
     state.wakeLock = sentinela;
+    state.wakeLockRetryAttempt = 0;
+
+    if (state.wakeLockRetryId) {
+      clearTimeout(state.wakeLockRetryId);
+      state.wakeLockRetryId = null;
+    }
 
     sentinela.addEventListener(
       "release",
@@ -52,10 +63,15 @@ async function manterTelaAtiva() {
         }
 
         if (document.visibilityState === "visible") {
-          setTimeout(manterTelaAtiva, 1000);
+          agendarWakeLockRetry();
         }
       }
     );
+
+    if (document.visibilityState !== "visible") {
+      sentinela.release();
+      return;
+    }
 
     console.log("Bloqueio de suspensão da tela ativado.");
   } catch (erro) {
@@ -63,9 +79,50 @@ async function manterTelaAtiva() {
       "Wake Lock indisponível neste navegador ou endereço:",
       erro
     );
+
+    agendarWakeLockRetry();
   } finally {
     state.wakeLockRequest = null;
   }
+}
+
+
+function agendarWakeLockRetry() {
+  if (
+    document.visibilityState !== "visible" ||
+    state.wakeLock ||
+    state.wakeLockRetryId
+  ) {
+    return;
+  }
+
+  const atraso = Math.min(
+    1000 * Math.pow(2, state.wakeLockRetryAttempt),
+    30000
+  );
+
+  state.wakeLockRetryAttempt = Math.min(
+    state.wakeLockRetryAttempt + 1,
+    5
+  );
+
+  state.wakeLockRetryId = setTimeout(
+    () => {
+      state.wakeLockRetryId = null;
+      manterTelaAtiva();
+    },
+    atraso
+  );
+}
+
+
+function cancelarWakeLockRetry() {
+  if (state.wakeLockRetryId) {
+    clearTimeout(state.wakeLockRetryId);
+    state.wakeLockRetryId = null;
+  }
+
+  state.wakeLockRetryAttempt = 0;
 }
 
 
@@ -368,54 +425,71 @@ async function renovarToken(config) {
 }
 
 
-async function garantirToken() {
-  const config =
-    await getConfig();
-
-  if (!config) {
-    mostrarErro(
-      "Painel não configurado",
-      "Configure server, unidade e credenciais."
-    );
-
-    return null;
-  }
-
+async function garantirToken(config) {
   if (isTokenValid()) {
     return state.accessToken;
   }
 
-  const tokenData =
-    await renovarToken(config);
+  if (state.tokenPromise) {
+    return await state.tokenPromise;
+  }
 
-  state.accessToken =
-    tokenData.access_token;
+  state.tokenPromise = (async () => {
+    if (!config) {
+      config = await getConfig();
+    }
 
-  state.refreshToken =
-    tokenData.refresh_token;
+    if (!config) {
+      mostrarErro(
+        "Painel não configurado",
+        "Configure server, unidade e credenciais."
+      );
 
-  const expireDate =
-    new Date(
-      Date.now() +
-      tokenData.expires_in * 1000
-    ).toISOString();
+      return null;
+    }
 
-  storageSet(
-    "access_token",
-    state.accessToken
-  );
+    if (isTokenValid()) {
+      return state.accessToken;
+    }
 
-  storageSet(
-    "refresh_token",
-    state.refreshToken
-  );
+    const tokenData =
+      await renovarToken(config);
 
-  storageSet(
-    "expire_date",
-    expireDate
-  );
+    state.accessToken =
+      tokenData.access_token;
 
-  return state.accessToken;
+    state.refreshToken =
+      tokenData.refresh_token;
+
+    const expireDate =
+      new Date(
+        Date.now() +
+        tokenData.expires_in * 1000
+      ).toISOString();
+
+    storageSet(
+      "access_token",
+      state.accessToken
+    );
+
+    storageSet(
+      "refresh_token",
+      state.refreshToken
+    );
+
+    storageSet(
+      "expire_date",
+      expireDate
+    );
+
+    return state.accessToken;
+  })();
+
+  try {
+    return await state.tokenPromise;
+  } finally {
+    state.tokenPromise = null;
+  }
 }
 
 
@@ -506,8 +580,18 @@ function abreviarNome(
    ========================================================= */
 
 async function carregarChamadas() {
+  const requestGeneration =
+    ++state.requestGeneration;
+
   const config =
     await getConfig();
+
+  if (
+    requestGeneration !==
+    state.requestGeneration
+  ) {
+    return;
+  }
 
   if (!config) {
     mostrarErro(
@@ -520,9 +604,13 @@ async function carregarChamadas() {
 
   try {
     const token =
-      await garantirToken();
+      await garantirToken(config);
 
-    if (!token) {
+    if (
+      !token ||
+      requestGeneration !==
+      state.requestGeneration
+    ) {
       return;
     }
 
@@ -553,6 +641,13 @@ async function carregarChamadas() {
       );
 
     if (
+      requestGeneration !==
+      state.requestGeneration
+    ) {
+      return;
+    }
+
+    if (
       resp.status === 401 ||
       resp.status === 403
     ) {
@@ -578,6 +673,13 @@ async function carregarChamadas() {
 
     const dados =
       await resp.json();
+
+    if (
+      requestGeneration !==
+      state.requestGeneration
+    ) {
+      return;
+    }
 
     if (
       !Array.isArray(dados) ||
@@ -640,8 +742,14 @@ async function carregarChamadas() {
         config.alert
       );
 
-      setTimeout(
+      if (state.ttsTimeoutId) {
+        clearTimeout(state.ttsTimeoutId);
+      }
+
+      state.ttsTimeoutId = setTimeout(
         () => {
+          state.ttsTimeoutId = null;
+
           falar(
             nome,
             local,
@@ -653,6 +761,13 @@ async function carregarChamadas() {
     }
 
   } catch (erro) {
+    if (
+      requestGeneration !==
+      state.requestGeneration
+    ) {
+      return;
+    }
+
     console.error(erro);
 
     mostrarErro(
@@ -915,6 +1030,20 @@ function removerPopupSom(botao) {
    INICIAR CONSULTA DO PAINEL
    ========================================================= */
 
+async function executarPolling() {
+  try {
+    await carregarChamadas();
+  } finally {
+    if (state.painelIniciado) {
+      state.pollingId = setTimeout(
+        executarPolling,
+        3000
+      );
+    }
+  }
+}
+
+
 function iniciarConsultas() {
   if (
     state.painelIniciado
@@ -925,17 +1054,7 @@ function iniciarConsultas() {
   state.painelIniciado =
     true;
 
-  carregarChamadas();
-
-  if (
-    !state.pollingId
-  ) {
-    state.pollingId =
-      setInterval(
-        carregarChamadas,
-        3000
-      );
-  }
+  executarPolling();
 }
 
 
@@ -1717,6 +1836,8 @@ function iniciarPainel() {
     () => {
       if (document.visibilityState === "visible") {
         manterTelaAtiva();
+      } else {
+        cancelarWakeLockRetry();
       }
     }
   );

@@ -34,6 +34,8 @@ use App\Repository\UsuarioRepository;
 use App\Service\AtendimentoService;
 use App\Service\FilaService;
 use App\Service\MercureService;
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use Exception;
@@ -176,6 +178,22 @@ class AtendimentoServiceTest extends TestCase
         $proximo = $this->buildAtendimento()->setId(21);
         $servicoUnidade = new ServicoUnidade();
         $servicos = [];
+
+        $connection = $this->createMock(Connection::class);
+        $connection->expects($this->once())->method('beginTransaction');
+        $connection->expects($this->once())->method('commit');
+
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects($this->once())->method('getConnection')->willReturn($connection);
+        $em
+            ->expects($this->once())
+            ->method('refresh')
+            ->with($atual, LockMode::PESSIMISTIC_WRITE);
+
+        $this->storage
+            ->expects($this->once())
+            ->method('getManager')
+            ->willReturn($em);
 
         $this->filaService
             ->expects($this->once())

@@ -29,6 +29,7 @@ use App\Repository\ClienteRepository;
 use App\Repository\ServicoUnidadeRepository;
 use App\Repository\UsuarioRepository;
 use DateTimeInterface;
+use Doctrine\DBAL\LockMode;
 use Novosga\Entity\AgendamentoInterface;
 use Novosga\Entity\AtendimentoInterface;
 use Novosga\Entity\ClienteInterface;
@@ -536,40 +537,54 @@ class AtendimentoService implements AtendimentoServiceInterface
         array $servicos,
         string $tipoFila,
     ): AtendimentoInterface {
-        if (
-            $atendimento->getStatus() !== self::ATENDIMENTO_INICIADO
-            || $atendimento->getUsuario()?->getId() !== $usuario->getId()
-        ) {
-            throw new Exception('Somente o atendimento atual já iniciado pode ser adiado.');
+        $em = $this->storage->getManager();
+        $connection = $em->getConnection();
+        $connection->beginTransaction();
+
+        try {
+            $em->refresh($atendimento, LockMode::PESSIMISTIC_WRITE);
+            if (
+                $atendimento->getStatus() !== self::ATENDIMENTO_INICIADO
+                || $atendimento->getUsuario()?->getId() !== $usuario->getId()
+            ) {
+                throw new Exception('Somente o atendimento atual já iniciado pode ser adiado.');
+            }
+
+            $fila = $this->filaService->getFilaAtendimento(
+                $atendimento->getUnidade(),
+                $usuario,
+                $servicos,
+                $tipoFila,
+                1,
+            );
+            $proximo = $fila[0] ?? null;
+            if (!$proximo instanceof Atendimento) {
+                throw new Exception('Não há outro paciente na fila para atender primeiro.');
+            }
+
+            $now = $this->clock->now();
+            $atendimento
+                ->setDataFim($now)
+                ->setStatus(self::ATENDIMENTO_ENCERRADO)
+                ->setResolucao(self::PENDENTE)
+                ->setTempoPermanencia($now->diff($atendimento->getDataChegada()))
+                ->setTempoAtendimento($now->diff($atendimento->getDataInicio()));
+
+            /** @var Atendimento $novo */
+            $novo = $this->copyToRedirect($atendimento, $atendimento->getServico());
+            $novo
+                ->setUsuarioTriagem($atendimento->getUsuarioTriagem())
+                ->setRetornoApos($proximo);
+
+            $this->storage->encerrar($atendimento, [], $novo);
+            $connection->commit();
+        } catch (Exception $e) {
+            if ($connection->isTransactionActive()) {
+                $connection->rollBack();
+            }
+            throw $e;
         }
 
-        $fila = $this->filaService->getFilaAtendimento(
-            $atendimento->getUnidade(),
-            $usuario,
-            $servicos,
-            $tipoFila,
-            1,
-        );
-        $proximo = $fila[0] ?? null;
-        if (!$proximo instanceof Atendimento) {
-            throw new Exception('Não há outro paciente na fila para atender primeiro.');
-        }
-
-        $now = $this->clock->now();
-        $atendimento
-            ->setDataFim($now)
-            ->setStatus(self::ATENDIMENTO_ENCERRADO)
-            ->setResolucao(self::PENDENTE)
-            ->setTempoPermanencia($now->diff($atendimento->getDataChegada()))
-            ->setTempoAtendimento($now->diff($atendimento->getDataInicio()));
-
-        /** @var Atendimento $novo */
-        $novo = $this->copyToRedirect($atendimento, $atendimento->getServico());
-        $novo
-            ->setUsuarioTriagem($atendimento->getUsuarioTriagem())
-            ->setRetornoApos($proximo);
-
-        $this->storage->encerrar($atendimento, [], $novo);
         $this->logger->info('Attendance deferred after next queued ticket', [
             'attendance' => $atendimento->getId(),
             'deferred' => $novo->getId(),

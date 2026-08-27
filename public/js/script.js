@@ -81,6 +81,7 @@ const App = {
             url += '?' + search.toString();
         }
 
+        let redirectUrl = null;
         try {
             const resp = await fetch(url, {
                 body,
@@ -88,8 +89,10 @@ const App = {
                 headers,
             });
             const contentType = resp.headers.get('content-type') || '';
-            if (resp.redirected || contentType.includes('text/html')) {
-                window.location.assign(resp.redirected ? resp.url : App.baseUrl);
+            const finalUrl = new URL(resp.url, window.location.href);
+            const isLogin = finalUrl.pathname.endsWith('/login');
+            if (isLogin || contentType.includes('text/html')) {
+                redirectUrl = isLogin ? finalUrl.href : App.baseUrl;
                 return;
             }
             const json = await resp.json();
@@ -108,11 +111,14 @@ const App = {
             if (arg.error && typeof(arg.error) === 'function') {
                 arg.error(error);
             }
-        }
-
-        loading.style.display = 'none';
-        if (arg.complete && typeof(arg.complete) === 'function') {
-            arg.complete();
+        } finally {
+            loading.style.display = 'none';
+            if (arg.complete && typeof(arg.complete) === 'function') {
+                arg.complete();
+            }
+            if (redirectUrl) {
+                window.location.assign(redirectUrl);
+            }
         }
     },
     

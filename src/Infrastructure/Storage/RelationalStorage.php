@@ -98,7 +98,11 @@ abstract class RelationalStorage extends DoctrineStorage
         array $codificados,
         ?AtendimentoInterface $novoAtendimento = null
     ): void {
-        $this->em->beginTransaction();
+        $connection = $this->em->getConnection();
+        $ownsTransaction = !$connection->isTransactionActive();
+        if ($ownsTransaction) {
+            $this->em->beginTransaction();
+        }
 
         try {
             foreach ($codificados as $codificado) {
@@ -111,11 +115,15 @@ abstract class RelationalStorage extends DoctrineStorage
 
             $this->em->persist($atendimento);
             $this->em->flush();
-            $this->em->commit();
+            if ($ownsTransaction) {
+                $this->em->commit();
+            }
         } catch (Exception $e) {
-            try {
-                $this->em->rollback();
-            } catch (Exception $ex) {
+            if ($ownsTransaction) {
+                try {
+                    $this->em->rollback();
+                } catch (Exception $ex) {
+                }
             }
             throw $e;
         }
